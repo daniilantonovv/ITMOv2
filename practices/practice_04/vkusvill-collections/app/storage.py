@@ -7,6 +7,11 @@ from app.models import CategoryCount, Collection, CollectionIn, Product, Totals
 
 MAX_COLLECTIONS = 100
 
+
+class DuplicateCartUrlError(Exception):
+    """Raised when trying to store a collection with a cart_url that already exists."""
+    pass
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS collections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,7 +20,8 @@ CREATE TABLE IF NOT EXISTS collections (
     cart_url TEXT NOT NULL,
     products TEXT NOT NULL,
     created_at TEXT NOT NULL
-)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_collections_cart_url ON collections(cart_url);
 """
 
 
@@ -26,7 +32,7 @@ class CollectionStore:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as db:
-            db.execute(SCHEMA)
+            db.executescript(SCHEMA)
 
     def _connect(self) -> sqlite3.Connection:
         db = sqlite3.connect(self.db_path)
@@ -35,18 +41,23 @@ class CollectionStore:
 
     def create(self, data: CollectionIn) -> Collection:
         created_at = datetime.now(UTC).isoformat(timespec="seconds")
-        with self._connect() as db:
-            cursor = db.execute(
-                "INSERT INTO collections (title, category, cart_url, products, created_at)"
-                " VALUES (?, ?, ?, ?, ?)",
-                (data.title, data.category, data.cart_url, _dump(data.products), created_at),
-            )
-            db.execute(
-                "DELETE FROM collections WHERE id NOT IN"
-                " (SELECT id FROM collections ORDER BY id DESC LIMIT ?)",
-                (MAX_COLLECTIONS,),
-            )
-            new_id = cursor.lastrowid
+        try:
+            with self._connect() as db:
+                cursor = db.execute(
+                    "INSERT INTO collections (title, category, cart_url, products, created_at)"
+                    " VALUES (?, ?, ?, ?, ?)",
+                    (data.title, data.category, data.cart_url, _dump(data.products), created_at),
+                )
+                db.execute(
+                    "DELETE FROM collections WHERE id NOT IN"
+                    " (SELECT id FROM collections ORDER BY id DESC LIMIT ?)",
+                    (MAX_COLLECTIONS,),
+                )
+                new_id = cursor.lastrowid
+        except sqlite3.IntegrityError as e:
+            if "cart_url" in str(e):
+                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+            raise
         return self.get(new_id)
 
     def get(self, collection_id: int) -> Collection | None:
@@ -69,12 +80,17 @@ class CollectionStore:
         return [_to_collection(row) for row in rows]
 
     def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
-        with self._connect() as db:
-            cursor = db.execute(
-                "UPDATE collections SET title = ?, category = ?, cart_url = ?, products = ?"
-                " WHERE id = ?",
-                (data.title, data.category, data.cart_url, _dump(data.products), collection_id),
-            )
+        try:
+            with self._connect() as db:
+                cursor = db.execute(
+                    "UPDATE collections SET title = ?, category = ?, cart_url = ?, products = ?"
+                    " WHERE id = ?",
+                    (data.title, data.category, data.cart_url, _dump(data.products), collection_id),
+                )
+        except sqlite3.IntegrityError as e:
+            if "cart_url" in str(e):
+                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+            raise
         return self.get(collection_id) if cursor.rowcount else None
 
     def delete(self, collection_id: int) -> bool:

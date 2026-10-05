@@ -68,6 +68,25 @@ Served at `GET /`. A static page that uses only the API above.
   VkusVill" link (new tab).
 - Shows a clear empty state and a clear error state.
 
+## Feature A — no duplicate carts
+
+- `POST /api/collections` with a `cart_url` that is already stored →
+  `409 {"detail": "collection with this cart_url already exists"}`. Nothing is
+  stored, and the existing collection is unchanged.
+- `PUT /api/collections/{id}` that sets a `cart_url` used by **another**
+  collection → the same 409. Keeping its own `cart_url` is fine.
+- `cart_url` values are compared exactly as given.
+- After a collection is deleted (or evicted by the 100 cap), its `cart_url` can be saved again.
+
+## Feature B — storage failure
+
+- If the SQLite database cannot be read or written (for example, the file is
+  corrupted or not a database), every `/api` endpoint returns
+  `503 {"detail": "storage unavailable"}`.
+- Internal error text (SQLite messages, paths, tracebacks) never reaches the client.
+- `GET /` (the dashboard page) still loads and shows its error state.
+- All Feature A scenarios keep working.
+
 ## Agent flow (not in this step)
 
 The agent gets products and a cart link from the VkusVill MCP. It shows them
@@ -79,4 +98,6 @@ approval**.
 - [x] CRUD API
 - [x] 100-collection cap
 - [x] Dashboard
+- [x] Feature A — no duplicate carts
+- [ ] Feature B — storage failure
 - [ ] Agent flow

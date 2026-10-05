@@ -2,12 +2,12 @@ import os
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Response, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response, status
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
-from app.storage import CollectionStore
+from app.storage import CollectionStore, DuplicateCartUrlError
 
 STATIC_DIR = Path(__file__).parent / "static"
 DEFAULT_DB = "data/collections.db"
@@ -52,6 +52,14 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
         return store.categories()
 
     app = FastAPI(title="VkusVill Collections")
+
+    @app.exception_handler(DuplicateCartUrlError)
+    def handle_duplicate_cart_url(request: Request, exc: DuplicateCartUrlError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "collection with this cart_url already exists"},
+        )
+
     app.include_router(api)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
