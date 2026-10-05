@@ -10,7 +10,7 @@ Python 3.14, FastAPI, SQLite (stdlib `sqlite3`), static HTML/CSS/JS.
 | What | Where |
 |---|---|
 | Contract: model, API, limits, dashboard, status | `docs/requirements.md` — the source of truth |
-| Code style rules | `docs/style-guide.md` — read before changing code, if it exists |
+| Code style rules | `docs/style-guide.md` — **read before changing code** |
 | App factory and routes | `app/main.py` (`create_app(db_path)`) |
 | Pydantic models, validation, totals | `app/models.py` |
 | SQLite storage and the 100-row cap | `app/storage.py` (`CollectionStore`) |
@@ -33,7 +33,9 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # setup
 
 The database is `data/collections.db`; `COLLECTIONS_DB` overrides it.
 `data/` is git-ignored. Work is done only when `sh scripts/check.sh` passes.
-Paste its real output.
+Paste its real output. A hook (`.opencode/plugins/check-after-edit.js`) also runs it
+after every edit and appends `[check-after-edit] PASS/FAIL` to the tool result.
+React to a FAIL before moving on.
 
 ## Workflow
 
@@ -92,6 +94,11 @@ Paste its real output.
   MCP credentials).
 - **Ask first** before adding a dependency, a framework or a build step, or
   before editing files outside this folder.
+
+## Subagents
+
+- `@tester` checks a finished feature against the contract (read-only).
+- `@explore` reviews a diff for problems (read-only).
 
 ## Report format
 
