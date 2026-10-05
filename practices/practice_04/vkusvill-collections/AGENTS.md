@@ -10,6 +10,7 @@ Python 3.14, FastAPI, SQLite (stdlib `sqlite3`), static HTML/CSS/JS.
 | What | Where |
 |---|---|
 | Contract: model, API, limits, dashboard, status | `docs/requirements.md` — the source of truth |
+| Current state, open points | `docs/HANDOFF.md` |
 | Code style rules | `docs/style-guide.md` — **read before changing code** |
 | App factory and routes | `app/main.py` (`create_app(db_path)`) |
 | Pydantic models, validation, totals | `app/models.py` |
