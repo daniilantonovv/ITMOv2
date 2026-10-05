@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
-from app.storage import CollectionStore, DuplicateCartUrlError
+from app.storage import CollectionStore, DuplicateCartUrlError, StorageUnavailableError
 
 STATIC_DIR = Path(__file__).parent / "static"
 DEFAULT_DB = "data/collections.db"
@@ -58,6 +58,13 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"detail": "collection with this cart_url already exists"},
+        )
+
+    @app.exception_handler(StorageUnavailableError)
+    def handle_storage_unavailable(request: Request, exc: StorageUnavailableError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": "storage unavailable"},
         )
 
     app.include_router(api)

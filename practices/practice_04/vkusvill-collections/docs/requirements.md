@@ -99,5 +99,5 @@ approval**.
 - [x] 100-collection cap
 - [x] Dashboard
 - [x] Feature A — no duplicate carts
-- [ ] Feature B — storage failure
+- [x] Feature B — storage failure
 - [ ] Agent flow
