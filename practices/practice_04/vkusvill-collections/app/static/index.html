@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Подборки продуктов</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232F6B3A'/%3E%3Cpath d='M11 9h15v14H11l-6-7z' fill='%23FFD84D'/%3E%3Ccircle cx='12' cy='16' r='2' fill='%232F6B3A'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-text">
+      <h1>Корзина<br>уже собрана</h1>
+      <p class="lead">Подборки продуктов из ВкусВилла под завтрак, ужин или пикник. Выберите набор и откройте готовую корзину.</p>
+    </div>
+    <div class="printer" aria-live="polite">
+      <div class="printer-slot" aria-hidden="true"></div>
+      <button class="receipt receipt-hero" id="hero-receipt" type="button" hidden></button>
+    </div>
+  </header>
+
+  <main>
+    <nav class="chips" id="categories" aria-label="Категории"></nav>
+    <p class="status" id="status" role="status"></p>
+    <ul class="grid" id="grid"></ul>
+  </main>
+
+  <dialog class="sheet" id="details" aria-labelledby="details-title">
+    <button class="close" id="details-close" type="button" aria-label="Закрыть">×</button>
+    <div class="receipt receipt-sheet">
+      <p class="r-head" id="details-category"></p>
+      <h2 id="details-title"></h2>
+      <p class="r-meta" id="details-meta"></p>
+      <ol class="r-lines" id="details-products"></ol>
+      <div class="r-total">
+        <span>Итого</span>
+        <span class="tag tag-big" id="details-total"></span>
+      </div>
+      <section class="macros" aria-labelledby="macros-title">
+        <h3 id="macros-title"><span id="details-kcal"></span> ккал</h3>
+        <div class="macro-bar" id="details-macro-bar" aria-hidden="true"></div>
+        <dl class="macro-legend" id="details-macros"></dl>
+      </section>
+      <svg class="barcode" id="details-barcode" aria-hidden="true"></svg>
+    </div>
+    <div class="actions">
+      <a class="button primary" id="details-open" target="_blank" rel="noopener noreferrer">Открыть корзину во ВкусВилле</a>
+      <button class="button" id="details-copy" type="button">Скопировать ссылку</button>
+    </div>
+    <p class="copied" id="details-copied" role="status"></p>
+  </dialog>
+
+  <template id="card-template">
+    <li>
+      <button class="card" type="button">
+        <svg class="crate" viewBox="0 0 240 132" aria-hidden="true"></svg>
+        <span class="card-body">
+          <span class="card-category"></span>
+          <span class="card-title"></span>
+          <span class="card-meta"></span>
+        </span>
+        <span class="tag"></span>
+      </button>
+    </li>
+  </template>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

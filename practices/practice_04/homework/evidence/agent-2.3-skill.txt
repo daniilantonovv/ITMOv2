@@ -1,0 +1,55 @@
+
+> build · anthropic/claude-sonnet-4.5
+
+→ Skill "test-driven-development"
+Загружаю skill и читаю документацию.
+→ Read .opencode/skills/test-driven-development/writing-good-tests.md
+→ Read docs/requirements.md
+## Краткий ответ
+
+Читаю **Feature A** из `requirements.md`:
+
+**Acceptance criteria:**
+- POST с дублем `cart_url` → 409, ничего не сохраняется
+- PUT с чужим `cart_url` → 409; свой можно оставить
+- Сравнение побайтовое; после удаления/вытеснения `cart_url` можно использовать снова
+
+---
+
+### Как применю процедуру из `writing-good-tests.md`
+
+**1. Name the Break (до написания теста):**
+- Для каждого сценария отвечу: «Какое изменение в продакшне должно сломать этот тест?»
+  - Пример: убрать проверку уникальности в POST → тест «дубль при POST → 409» упадёт
+  - Противопример: тест «`cart_url` записан в БД» проверял бы *что* хранится, а не *поведение запроса* → слабо
+
+**2. Derive expectations independently:**
+- `expect(response.status).toBe(409)` — литерал, не вычисление
+- Проверю, что существующая коллекция осталась неизменной: считаю `id` из фикстуры, а не из ответа
+
+**3. Exercise the Real Thing:**
+- Вызову через `client` (HTTP), чтобы маршрут, валидация и storage вместе работали
+- Не буду мокать `CollectionStore` — это интеграционный тест хранилища
+
+**4. Mock at the right level (если нужно):**
+- Для Feature A реального `sqlite3` достаточно (быстрый), моки не нужны
+- Если б появилась внешняя зависимость (API VkusVill) — мокал бы HTTP-клиент, но не storage
+
+**5. No change detectors:**
+- Не буду проверять, что код содержит строку `"cart_url already exists"`; проверю только статус 409 и факт, что ничего не сохранилось
+
+**6. The Mutation Check (в конце):**
+- Мутации: убрать проверку уникальности, сравнить `cart_url` с `!=` вместо `==`, не откатывать транзакцию
+- Каждая мутация должна свалить хотя бы один тест
+
+---
+
+**Процесс:**
+
+1. **RED:** напишу тест, например `test_post_duplicate_cart_url_returns_409`, запущу — должен упасть с «409 not found» или «endpoint missing»
+2. **GREEN:** добавлю `SELECT ... WHERE cart_url = ?` в `storage.py` и `409` в `main.py`
+3. **REFACTOR:** вынесу повторы (если есть) в `new_collection(**overrides)`
+4. Повторю для PUT-сценария: RED → GREEN → Refactor
+5. Параметризую случаи (POST дубль, PUT чужой, PUT свой) в `tests/test_collections_limits.py`
+
+Ничего не меняю, пока не скажешь.

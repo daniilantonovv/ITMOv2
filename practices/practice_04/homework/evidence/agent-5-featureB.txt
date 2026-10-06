@@ -1,0 +1,1024 @@
+
+> build · anthropic/claude-sonnet-4.5
+
+→ Read docs/requirements.md
+→ Read docs/style-guide.md
+→ Read AGENTS.md
+I'll implement Feature B (storage failure handling) following the requirements. Let me start by reading the key documents to understand the acceptance criteria and code style.
+→ Skill "test-driven-development"
+→ Read .opencode/skills/test-driven-development/writing-good-tests.md
+→ Read app/storage.py
+→ Read app/main.py
+→ Read tests/conftest.py
+Now let me read the writing-good-tests.md file and examine the current codebase structure to understand how to implement Feature B.
+→ Read tests/test_feature_a_no_duplicate_carts.py
+Now let me look at existing Feature A tests to understand the testing pattern:
+✱ Glob "tests/*.py" 7 matches
+
+# Todos
+[•] Write failing tests for Feature B - storage unavailable returns 503 for all API endpoints
+[ ] Implement storage failure handling - catch SQLite errors and raise StorageUnavailableError
+[ ] Add exception handler that maps StorageUnavailableError to 503
+[ ] Verify dashboard (GET /) still loads when storage is unavailable
+[ ] Verify Feature A scenarios still work with Feature B changes
+[ ] Run full check.sh to ensure everything passes
+
+Perfect! Now I understand the structure. Let me create a task list and implement Feature B following TDD principles.
+## Acceptance Criteria for Feature B
+
+From `docs/requirements.md`:
+- If SQLite database cannot be read or written (corrupted or not a database), every `/api` endpoint returns `503 {"detail": "storage unavailable"}`
+- Internal error text (SQLite messages, paths, tracebacks) never reaches the client
+- `GET /` (dashboard) still loads and shows its error state
+- All Feature A scenarios keep working
+
+Now let me write the failing tests first (RED phase):
+← Write tests/test_feature_b_storage_failure.py
+Wrote file successfully.
+
+[check-after-edit] sh scripts/check.sh → FAIL (exit 1)
+app/storage.py:35: DatabaseError
+________________ test_dashboard_loads_when_storage_unavailable _________________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-25/test_dashboard_loads_when_stor0')
+
+    def test_dashboard_loads_when_storage_unavailable(tmp_path):
+        """GET / (dashboard) returns 200 even when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10af7e670>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-25/test_dashboard_loads_when_stor0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+=========================== short test summary info ============================
+FAILED tests/test_feature_b_storage_failure.py::test_post_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_get_list_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_get_by_id_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_put_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_delete_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_get_categories_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_storage_error_does_not_expose_internal_details
+FAILED tests/test_feature_b_storage_failure.py::test_dashboard_loads_when_storage_unavailable
+8 failed, 42 passed in 0.73s
+
+Perfect! The tests are failing correctly. Now let me run just the new test file to see the failures more clearly:
+$ .venv/bin/python -m pytest tests/test_feature_b_storage_failure.py -q
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+________________ test_post_with_corrupted_database_returns_503 _________________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_post_with_corrupted_datab0')
+new_collection = <function make_collection at 0x10ca86770>
+
+    def test_post_with_corrupted_database_returns_503(tmp_path, new_collection):
+        """POST /api/collections returns 503 when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10cb15010>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_post_with_corrupted_datab0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+______________ test_get_list_with_corrupted_database_returns_503 _______________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_get_list_with_corrupted_d0')
+
+    def test_get_list_with_corrupted_database_returns_503(tmp_path):
+        """GET /api/collections returns 503 when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10ca8f390>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_get_list_with_corrupted_d0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+______________ test_get_by_id_with_corrupted_database_returns_503 ______________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_get_by_id_with_corrupted_0')
+
+    def test_get_by_id_with_corrupted_database_returns_503(tmp_path):
+        """GET /api/collections/{id} returns 503 when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10ca8f750>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_get_by_id_with_corrupted_0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+_________________ test_put_with_corrupted_database_returns_503 _________________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_put_with_corrupted_databa0')
+new_collection = <function make_collection at 0x10ca86770>
+
+    def test_put_with_corrupted_database_returns_503(tmp_path, new_collection):
+        """PUT /api/collections/{id} returns 503 when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10cb80e90>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_put_with_corrupted_databa0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+_______________ test_delete_with_corrupted_database_returns_503 ________________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_delete_with_corrupted_dat0')
+
+    def test_delete_with_corrupted_database_returns_503(tmp_path):
+        """DELETE /api/collections/{id} returns 503 when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10cb815b0>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_delete_with_corrupted_dat0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+___________ test_get_categories_with_corrupted_database_returns_503 ____________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_get_categories_with_corru0')
+
+    def test_get_categories_with_corrupted_database_returns_503(tmp_path):
+        """GET /api/categories returns 503 when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10caa32f0>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_get_categories_with_corru0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+_____________ test_storage_error_does_not_expose_internal_details ______________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_storage_error_does_not_ex0')
+new_collection = <function make_collection at 0x10ca86770>
+
+    def test_storage_error_does_not_expose_internal_details(tmp_path, new_collection):
+        """503 response contains only the contract message, no SQLite details."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10ca9bf00>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_storage_error_does_not_ex0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+________________ test_dashboard_loads_when_storage_unavailable _________________
+
+tmp_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_dashboard_loads_when_stor0')
+
+    def test_dashboard_loads_when_storage_unavailable(tmp_path):
+        """GET / (dashboard) returns 200 even when database is corrupted."""
+        db_path = tmp_path / "corrupt.db"
+        db_path.write_text("not a database")
+>       client = TestClient(create_app(db_path=db_path))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_feature_b_storage_failure.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/main.py:17: in create_app
+    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.storage.CollectionStore object at 0x10cc04490>
+db_path = PosixPath('/private/var/folders/72/g4tr_jmn2txgtp88jt9frqf40000gn/T/pytest-of-daniilantonov/pytest-26/test_dashboard_loads_when_stor0/corrupt.db')
+
+    def __init__(self, db_path: Path | str) -> None:
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as db:
+>           db.executescript(SCHEMA)
+E           sqlite3.DatabaseError: file is not a database
+
+app/storage.py:35: DatabaseError
+=========================== short test summary info ============================
+FAILED tests/test_feature_b_storage_failure.py::test_post_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_get_list_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_get_by_id_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_put_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_delete_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_get_categories_with_corrupted_database_returns_503
+FAILED tests/test_feature_b_storage_failure.py::test_storage_error_does_not_expose_internal_details
+FAILED tests/test_feature_b_storage_failure.py::test_dashboard_loads_when_storage_unavailable
+8 failed in 0.06s
+
+# Todos
+[✓] Write failing tests for Feature B - storage unavailable returns 503 for all API endpoints
+[•] Implement storage failure handling - catch SQLite errors and raise StorageUnavailableError
+[ ] Add exception handler that maps StorageUnavailableError to 503
+[ ] Verify dashboard (GET /) still loads when storage is unavailable
+[ ] Verify Feature A scenarios still work with Feature B changes
+[ ] Run full check.sh to ensure everything passes
+
+Excellent! All 8 tests fail as expected with `sqlite3.DatabaseError: file is not a database`. The tests are failing for the right reason - the feature is not implemented yet.
+Now let's implement the minimal code to make the tests pass (GREEN phase). Following the style guide:
+1. Storage raises domain errors
+2. One handler maps each to HTTP
+
+Let me start by adding the `StorageUnavailableError` and wrapping database operations in storage.py:
+→ Read app/storage.py
+Now I'll implement the storage failure handling. Following the style guide pattern from DuplicateCartUrlError:
+
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -11,8 +11,13 @@
+ class DuplicateCartUrlError(Exception):
+     """Raised when trying to store a collection with a cart_url that already exists."""
+     pass
+ 
++
++class StorageUnavailableError(Exception):
++    """Raised when the database cannot be read or written."""
++    pass
++
+ SCHEMA = """
+ CREATE TABLE IF NOT EXISTS collections (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     title TEXT NOT NULL,
+
+
+Good, now I need to catch database errors in the __init__ and all methods. Let me wrap all the database operations:
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -35,10 +35,13 @@
+ 
+ def __init__(self, db_path: Path | str) -> None:
+     self.db_path = Path(db_path)
+     self.db_path.parent.mkdir(parents=True, exist_ok=True)
+-    with self._connect() as db:
+-        db.executescript(SCHEMA)
++    try:
++        with self._connect() as db:
++            db.executescript(SCHEMA)
++    except sqlite3.DatabaseError as e:
++        raise StorageUnavailableError(f"Database initialization failed: {e}")
+ 
+ def _connect(self) -> sqlite3.Connection:
+     db = sqlite3.connect(self.db_path)
+     db.row_factory = sqlite3.Row
+
+
+Good progress! Now the error is being raised as `StorageUnavailableError`. Now I need to wrap all the other database operations:
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -65,8 +65,10 @@
+     except sqlite3.IntegrityError as e:
+         if "cart_url" in str(e):
+             raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+         raise
++    except sqlite3.DatabaseError as e:
++        raise StorageUnavailableError(f"Database error: {e}")
+     return self.get(new_id)
+ 
+ def get(self, collection_id: int) -> Collection | None:
+     with self._connect() as db:
+
+
+Now let me wrap the other methods too:
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -70,12 +70,15 @@
+         raise StorageUnavailableError(f"Database error: {e}")
+     return self.get(new_id)
+ 
+ def get(self, collection_id: int) -> Collection | None:
+-    with self._connect() as db:
+-        row = db.execute(
+-            "SELECT * FROM collections WHERE id = ?", (collection_id,)
+-        ).fetchone()
++    try:
++        with self._connect() as db:
++            row = db.execute(
++                "SELECT * FROM collections WHERE id = ?", (collection_id,)
++            ).fetchone()
++    except sqlite3.DatabaseError as e:
++        raise StorageUnavailableError(f"Database error: {e}")
+     return _to_collection(row) if row else None
+ 
+ def list(self, limit: int, category: str | None = None) -> list[Collection]:
+     query = "SELECT * FROM collections"
+
+
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -87,10 +87,13 @@
+         query += " WHERE category = ?"
+         params.append(category)
+     query += " ORDER BY id DESC LIMIT ?"
+     params.append(limit)
+-    with self._connect() as db:
+-        rows = db.execute(query, params).fetchall()
++    try:
++        with self._connect() as db:
++            rows = db.execute(query, params).fetchall()
++    except sqlite3.DatabaseError as e:
++        raise StorageUnavailableError(f"Database error: {e}")
+     return [_to_collection(row) for row in rows]
+ 
+ def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
+     try:
+
+
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -106,8 +106,10 @@
+     except sqlite3.IntegrityError as e:
+         if "cart_url" in str(e):
+             raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+         raise
++    except sqlite3.DatabaseError as e:
++        raise StorageUnavailableError(f"Database error: {e}")
+     return self.get(collection_id) if cursor.rowcount else None
+ 
+ def delete(self, collection_id: int) -> bool:
+     with self._connect() as db:
+
+
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -111,10 +111,13 @@
+         raise StorageUnavailableError(f"Database error: {e}")
+     return self.get(collection_id) if cursor.rowcount else None
+ 
+ def delete(self, collection_id: int) -> bool:
+-    with self._connect() as db:
+-        cursor = db.execute("DELETE FROM collections WHERE id = ?", (collection_id,))
++    try:
++        with self._connect() as db:
++            cursor = db.execute("DELETE FROM collections WHERE id = ?", (collection_id,))
++    except sqlite3.DatabaseError as e:
++        raise StorageUnavailableError(f"Database error: {e}")
+     return cursor.rowcount > 0
+ 
+ def categories(self) -> list[CategoryCount]:
+     with self._connect() as db:
+
+
+← Edit app/storage.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -119,13 +119,16 @@
+             raise StorageUnavailableError(f"Database error: {e}")
+         return cursor.rowcount > 0
+ 
+     def categories(self) -> list[CategoryCount]:
+-        with self._connect() as db:
+-            rows = db.execute(
+-                "SELECT category, COUNT(*) AS count FROM collections"
+-                " GROUP BY category ORDER BY category"
+-            ).fetchall()
++        try:
++            with self._connect() as db:
++                rows = db.execute(
++                    "SELECT category, COUNT(*) AS count FROM collections"
++                    " GROUP BY category ORDER BY category"
++                ).fetchall()
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return [CategoryCount(category=row["category"], count=row["count"]) for row in rows]
+ 
+ 
+ def _dump(products: list[Product]) -> str:
+
+
+# Todos
+[✓] Write failing tests for Feature B - storage unavailable returns 503 for all API endpoints
+[✓] Implement storage failure handling - catch SQLite errors and raise StorageUnavailableError
+[•] Add exception handler that maps StorageUnavailableError to 503
+[ ] Verify dashboard (GET /) still loads when storage is unavailable
+[ ] Verify Feature A scenarios still work with Feature B changes
+[ ] Run full check.sh to ensure everything passes
+
+Good! Now I have wrapped all the storage operations. The StorageUnavailableError is being raised. Now I need to:
+1. Add an exception handler in main.py
+2. Handle the case where the app can still start even if the database is corrupted (for dashboard access)
+
+Let me update the task list and add the exception handler:
+Now let me add the exception handler to main.py and make the app tolerate storage initialization failures (so the dashboard can still load):
+← Edit app/main.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -6,9 +6,9 @@
+ from fastapi.responses import FileResponse, JSONResponse
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
+-from app.storage import CollectionStore, DuplicateCartUrlError
++from app.storage import CollectionStore, DuplicateCartUrlError, StorageUnavailableError
+ 
+ STATIC_DIR = Path(__file__).parent / "static"
+ DEFAULT_DB = "data/collections.db"
+ 
+
+
+Now I need to handle the case where the app initialization doesn't fail even if the database is corrupted. The key insight is that we want the app to start and serve the dashboard, but API endpoints should return 503. Let me modify the approach - the store initialization should be lazy or we should catch the error in create_app:
+← Edit app/main.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -13,9 +13,13 @@
+ DEFAULT_DB = "data/collections.db"
+ 
+ 
+ def create_app(db_path: Path | str | None = None) -> FastAPI:
+-    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
++    try:
++        store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
++    except StorageUnavailableError:
++        # Store is unavailable, but app should still start for dashboard access
++        store = None
+     api = APIRouter(prefix="/api")
+ 
+     def found(collection: Collection | None) -> Collection:
+         if collection is None:
+
+
+Good progress! The dashboard test is now passing (43 passed instead of 42). Now I need to check if store is None and raise StorageUnavailableError in the route handlers. Let me add helper functions that check store availability:
+← Edit app/main.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -20,8 +20,13 @@
+     # Store is unavailable, but app should still start for dashboard access
+     store = None
+ api = APIRouter(prefix="/api")
+ 
++def ensure_store() -> CollectionStore:
++    if store is None:
++        raise StorageUnavailableError("Storage is unavailable")
++    return store
++
+ def found(collection: Collection | None) -> Collection:
+     if collection is None:
+         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="collection not found")
+     return collection
+
+
+Now I need to update all the route handlers to use ensure_store():
+← Edit app/main.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -32,34 +32,34 @@
+     return collection
+ 
+ @api.post("/collections", status_code=status.HTTP_201_CREATED)
+ def create_collection(data: CollectionIn) -> Collection:
+-    return store.create(data)
++    return ensure_store().create(data)
+ 
+ @api.get("/collections")
+ def list_collections(
+     limit: Annotated[int, Query(ge=1, le=100)] = 10,
+     category: str | None = None,
+ ) -> list[CollectionSummary]:
+-    return [c.summary() for c in store.list(limit=limit, category=category)]
++    return [c.summary() for c in ensure_store().list(limit=limit, category=category)]
+ 
+ @api.get("/collections/{collection_id}")
+ def get_collection(collection_id: int) -> Collection:
+-    return found(store.get(collection_id))
++    return found(ensure_store().get(collection_id))
+ 
+ @api.put("/collections/{collection_id}")
+ def update_collection(collection_id: int, data: CollectionIn) -> Collection:
+-    return found(store.update(collection_id, data))
++    return found(ensure_store().update(collection_id, data))
+ 
+ @api.delete("/collections/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+ def delete_collection(collection_id: int) -> Response:
+-    if not store.delete(collection_id):
++    if not ensure_store().delete(collection_id):
+         found(None)
+     return Response(status_code=status.HTTP_204_NO_CONTENT)
+ 
+ @api.get("/categories")
+ def list_categories() -> list[CategoryCount]:
+-    return store.categories()
++    return ensure_store().categories()
+ 
+ app = FastAPI(title="VkusVill Collections")
+ 
+ @app.exception_handler(DuplicateCartUrlError)
+
+
+Perfect! Now the StorageUnavailableError is being raised. I just need to add the exception handler to map it to 503:
+← Edit app/main.py
+Index: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -68,8 +68,15 @@
+         status_code=status.HTTP_409_CONFLICT,
+         content={"detail": "collection with this cart_url already exists"},
+     )
+ 
++@app.exception_handler(StorageUnavailableError)
++def handle_storage_unavailable(request: Request, exc: StorageUnavailableError) -> JSONResponse:
++    return JSONResponse(
++        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
++        content={"detail": "storage unavailable"},
++    )
++
+ app.include_router(api)
+ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+ 
+ @app.get("/", include_in_schema=False)
+
+
+Excellent! All tests are passing! Let me verify the tests are working correctly by running them individually:
+$ .venv/bin/python -m pytest tests/test_feature_b_storage_failure.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 8 items
+
+tests/test_feature_b_storage_failure.py::test_post_with_corrupted_database_returns_503 PASSED [ 12%]
+tests/test_feature_b_storage_failure.py::test_get_list_with_corrupted_database_returns_503 PASSED [ 25%]
+tests/test_feature_b_storage_failure.py::test_get_by_id_with_corrupted_database_returns_503 PASSED [ 37%]
+tests/test_feature_b_storage_failure.py::test_put_with_corrupted_database_returns_503 PASSED [ 50%]
+tests/test_feature_b_storage_failure.py::test_delete_with_corrupted_database_returns_503 PASSED [ 62%]
+tests/test_feature_b_storage_failure.py::test_get_categories_with_corrupted_database_returns_503 PASSED [ 75%]
+tests/test_feature_b_storage_failure.py::test_storage_error_does_not_expose_internal_details PASSED [ 87%]
+tests/test_feature_b_storage_failure.py::test_dashboard_loads_when_storage_unavailable PASSED [100%]
+
+============================== 8 passed in 0.09s ===============================
+
+Perfect! Now let me verify that Feature A scenarios still work:
+$ .venv/bin/python -m pytest tests/test_feature_a_no_duplicate_carts.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: ~/ITMOv2-p4-b/practices/practice_04/vkusvill-collections
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 8 items
+
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409 PASSED [ 12%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_does_not_modify_original PASSED [ 25%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409 PASSED [ 37%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_keeping_own_cart_url_is_allowed PASSED [ 50%]
+tests/test_feature_a_no_duplicate_carts.py::test_deleted_cart_url_can_be_reused PASSED [ 62%]
+tests/test_feature_a_no_duplicate_carts.py::test_evicted_cart_url_can_be_reused PASSED [ 75%]
+tests/test_feature_a_no_duplicate_carts.py::test_cart_urls_are_compared_exactly PASSED [ 87%]
+tests/test_feature_a_no_duplicate_carts.py::test_duplicate_cart_url_rejected_at_storage_level PASSED [100%]
+
+============================== 8 passed in 0.23s ===============================
+
+Excellent! Feature A is still working. Now let me run the full check.sh:
+$ sh scripts/check.sh
+..................................................                       [100%]
+50 passed in 0.71s
+
+# Todos
+[✓] Write failing tests for Feature B - storage unavailable returns 503 for all API endpoints
+[✓] Implement storage failure handling - catch SQLite errors and raise StorageUnavailableError
+[✓] Add exception handler that maps StorageUnavailableError to 503
+[✓] Verify dashboard (GET /) still loads when storage is unavailable
+[✓] Verify Feature A scenarios still work with Feature B changes
+[✓] Run full check.sh to ensure everything passes
+
+Perfect! All tests pass. Let me update the task list and create a summary:
+$ git status
+On branch practice-04-b
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   app/main.py
+	modified:   app/storage.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	tests/test_feature_b_storage_failure.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git diff app/storage.py
+diff --git a/practices/practice_04/vkusvill-collections/app/storage.py b/practices/practice_04/vkusvill-collections/app/storage.py
+index 0020b4a..9542c6e 100644
+--- a/practices/practice_04/vkusvill-collections/app/storage.py
++++ b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -12,6 +12,11 @@ class DuplicateCartUrlError(Exception):
+     """Raised when trying to store a collection with a cart_url that already exists."""
+     pass
+ 
++
++class StorageUnavailableError(Exception):
++    """Raised when the database cannot be read or written."""
++    pass
++
+ SCHEMA = """
+ CREATE TABLE IF NOT EXISTS collections (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+@@ -31,8 +36,11 @@ class CollectionStore:
+     def __init__(self, db_path: Path | str) -> None:
+         self.db_path = Path(db_path)
+         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+-        with self._connect() as db:
+-            db.executescript(SCHEMA)
++        try:
++            with self._connect() as db:
++                db.executescript(SCHEMA)
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database initialization failed: {e}")
+ 
+     def _connect(self) -> sqlite3.Connection:
+         db = sqlite3.connect(self.db_path)
+@@ -58,13 +66,18 @@ class CollectionStore:
+             if "cart_url" in str(e):
+                 raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+             raise
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return self.get(new_id)
+ 
+     def get(self, collection_id: int) -> Collection | None:
+-        with self._connect() as db:
+-            row = db.execute(
+-                "SELECT * FROM collections WHERE id = ?", (collection_id,)
+-            ).fetchone()
++        try:
++            with self._connect() as db:
++                row = db.execute(
++                    "SELECT * FROM collections WHERE id = ?", (collection_id,)
++                ).fetchone()
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return _to_collection(row) if row else None
+ 
+     def list(self, limit: int, category: str | None = None) -> list[Collection]:
+@@ -75,8 +88,11 @@ class CollectionStore:
+             params.append(category)
+         query += " ORDER BY id DESC LIMIT ?"
+         params.append(limit)
+-        with self._connect() as db:
+-            rows = db.execute(query, params).fetchall()
++        try:
++            with self._connect() as db:
++                rows = db.execute(query, params).fetchall()
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return [_to_collection(row) for row in rows]
+ 
+     def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
+@@ -91,19 +107,27 @@ class CollectionStore:
+             if "cart_url" in str(e):
+                 raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+             raise
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return self.get(collection_id) if cursor.rowcount else None
+ 
+     def delete(self, collection_id: int) -> bool:
+-        with self._connect() as db:
+-            cursor = db.execute("DELETE FROM collections WHERE id = ?", (collection_id,))
++        try:
++            with self._connect() as db:
++                cursor = db.execute("DELETE FROM collections WHERE id = ?", (collection_id,))
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return cursor.rowcount > 0
+ 
+     def categories(self) -> list[CategoryCount]:
+-        with self._connect() as db:
+-            rows = db.execute(
+-                "SELECT category, COUNT(*) AS count FROM collections"
+-                " GROUP BY category ORDER BY category"
+-            ).fetchall()
++        try:
++            with self._connect() as db:
++                rows = db.execute(
++                    "SELECT category, COUNT(*) AS count FROM collections"
++                    " GROUP BY category ORDER BY category"
++                ).fetchall()
++        except sqlite3.DatabaseError as e:
++            raise StorageUnavailableError(f"Database error: {e}")
+         return [CategoryCount(category=row["category"], count=row["count"]) for row in rows]
+
+Now let me verify the final state of the modified files:
+$ git diff app/main.py
+diff --git a/practices/practice_04/vkusvill-collections/app/main.py b/practices/practice_04/vkusvill-collections/app/main.py
+index da1e368..b9cfd5c 100644
+--- a/practices/practice_04/vkusvill-collections/app/main.py
++++ b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -7,16 +7,25 @@ from fastapi.responses import FileResponse, JSONResponse
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
+-from app.storage import CollectionStore, DuplicateCartUrlError
++from app.storage import CollectionStore, DuplicateCartUrlError, StorageUnavailableError
+ 
+ STATIC_DIR = Path(__file__).parent / "static"
+ DEFAULT_DB = "data/collections.db"
+ 
+ 
+ def create_app(db_path: Path | str | None = None) -> FastAPI:
+-    store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
++    try:
++        store = CollectionStore(db_path or os.environ.get("COLLECTIONS_DB", DEFAULT_DB))
++    except StorageUnavailableError:
++        # Store is unavailable, but app should still start for dashboard access
++        store = None
+     api = APIRouter(prefix="/api")
+ 
++    def ensure_store() -> CollectionStore:
++        if store is None:
++            raise StorageUnavailableError("Storage is unavailable")
++        return store
++
+     def found(collection: Collection | None) -> Collection:
+         if collection is None:
+             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="collection not found")
+@@ -24,32 +33,32 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
+ 
+     @api.post("/collections", status_code=status.HTTP_201_CREATED)
+     def create_collection(data: CollectionIn) -> Collection:
+-        return store.create(data)
++        return ensure_store().create(data)
+ 
+     @api.get("/collections")
+     def list_collections(
+         limit: Annotated[int, Query(ge=1, le=100)] = 10,
+         category: str | None = None,
+     ) -> list[CollectionSummary]:
+-        return [c.summary() for c in store.list(limit=limit, category=category)]
++        return [c.summary() for c in ensure_store().list(limit=limit, category=category)]
+ 
+     @api.get("/collections/{collection_id}")
+     def get_collection(collection_id: int) -> Collection:
+-        return found(store.get(collection_id))
++        return found(ensure_store().get(collection_id))
+ 
+     @api.put("/collections/{collection_id}")
+     def update_collection(collection_id: int, data: CollectionIn) -> Collection:
+-        return found(store.update(collection_id, data))
++        return found(ensure_store().update(collection_id, data))
+ 
+     @api.delete("/collections/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+     def delete_collection(collection_id: int) -> Response:
+-        if not store.delete(collection_id):
++        if not ensure_store().delete(collection_id):
+             found(None)
+         return Response(status_code=status.HTTP_204_NO_CONTENT)
+ 
+     @api.get("/categories")
+     def list_categories() -> list[CategoryCount]:
+-        return store.categories()
++        return ensure_store().categories()
+ 
+     app = FastAPI(title="VkusVill Collections")
+ 
+@@ -60,6 +69,13 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
+             content={"detail": "collection with this cart_url already exists"},
+         )
+ 
++    @app.exception_handler(StorageUnavailableError)
++    def handle_storage_unavailable(request: Request, exc: StorageUnavailableError) -> JSONResponse:
++        return JSONResponse(
++            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
++            content={"detail": "storage unavailable"},
++        )
++
+     app.include_router(api)
+     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+$ git log --oneline -5
+c12e698 chore: style guide, check-after-edit hook and tester subagent
+7e3a43b feat: reject duplicate cart_url with 409 (feature A)
+517e452 practice 4: ai-review and vkusvill-collections projects with agent setup
+6999636 Update from https://github.com/ai-course-avito/ITMO/commit/382dcc7cc053cb8b30fd314e9aa853ed70872a4a
+325b2c4 Update from https://github.com/ai-course-avito/ITMO/commit/797d4dd1ee79452ac6bab80c1c2053d07c00f370
+
+Perfect! Let me now show the git log to verify no commits were made:
+Perfect! No commits were made. Now let me provide a comprehensive summary of the work done.
+
+## Summary
+
+### Feature B Implementation Complete
+
+I successfully implemented **Feature B — storage failure handling** following TDD principles and the project's style guide.
+
+### What Changed
+
+**1. `tests/test_feature_b_storage_failure.py` (NEW)**
+   - 8 comprehensive tests covering all API endpoints
+   - Tests verify 503 response with corrupted database
+   - Tests ensure no internal error details leak to clients
+   - Tests verify dashboard still loads when storage is unavailable
+
+**2. `app/storage.py`**
+   - Added `StorageUnavailableError` exception class
+   - Wrapped `__init__` to catch database initialization failures
+   - Wrapped all CRUD methods (`create`, `get`, `list`, `update`, `delete`, `categories`) to catch `sqlite3.DatabaseError`
+   - Each catch block raises domain error `StorageUnavailableError` instead of leaking SQLite internals
+
+**3. `app/main.py`**
+   - Modified `create_app()` to catch `StorageUnavailableError` during initialization, allowing app to start even with corrupted database
+   - Added `ensure_store()` helper that raises `StorageUnavailableError` if store is `None`
+   - Updated all route handlers to use `ensure_store()` instead of accessing `store` directly
+   - Added exception handler `handle_storage_unavailable` that maps `StorageUnavailableError` to 503 with contract message
+
+### Commands Run and Results
+
+**RED Phase - Failing Tests:**
+```bash
+$ .venv/bin/python -m pytest tests/test_feature_b_storage_failure.py -q
+FFFFFFFF [8 failed]
+# All tests failed with sqlite3.DatabaseError as expected
+```
+
+**GREEN Phase - Implementation:**
+After implementing storage error handling, exception handler, and app initialization changes:
+```bash
+$ .venv/bin/python -m pytest tests/test_feature_b_storage_failure.py -v
+8 passed in 0.09s
+```
+
+**Verification - Feature A Still Works:**
+```bash
+$ .venv/bin/python -m pytest tests/test_feature_a_no_duplicate_carts.py -v
+8 passed in 0.23s
+```
+
+**Final Check - All Tests Pass:**
+```bash
+$ sh scripts/check.sh
+..................................................
+50 passed in 0.71s
+```
+
+### Design Decisions
+
+Following the style guide (rule #3):
+- **Storage raises domain errors**: All SQLite errors are caught in `storage.py` and translated to `StorageUnavailableError`
+- **One handler maps to HTTP**: `handle_storage_unavailable` in `main.py` maps the domain error to 503 response
+- **No internal details leak**: The exception handler returns only the contract message `"storage unavailable"`, never SQLite messages, paths, or tracebacks
+- **Dashboard resilience**: The app starts even if the database is corrupted, so `GET /` returns 200 and shows its error state
+
+### Status
+
+All acceptance criteria met:
+- ✅ Every `/api` endpoint returns 503 when database is corrupted
+- ✅ Internal error text never reaches the client
+- ✅ Dashboard (`GET /`) still loads and returns 200
+- ✅ All Feature A scenarios still work
+- ✅ No commits made (as requested)
+
+The implementation is complete, tested, and ready for review.

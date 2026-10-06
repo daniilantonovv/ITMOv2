@@ -1,0 +1,68 @@
+
+> build · anthropic/claude-sonnet-4.5
+
+Понял. Создам временный тест с ошибкой, исправлю его и удалю, цитируя результаты hook после записи.
+
+## Шаг 1: Создаю тест с ошибкой
+← Write tests/test_tmp_hook.py
+Wrote file successfully.
+
+[check-after-edit] sh scripts/check.sh → FAIL (exit 1)
+..........................................F                              [100%]
+=================================== FAILURES ===================================
+________________________________ test_tmp_hook _________________________________
+
+    def test_tmp_hook():
+>       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_tmp_hook.py:2: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_tmp_hook.py::test_tmp_hook - assert (1 + 1) == 3
+1 failed, 42 passed in 0.72s
+
+**Результат после шага 1:**
+```
+[check-after-edit] sh scripts/check.sh → FAIL (exit 1)
+..........................................F                              [100%]
+=================================== FAILURES ===================================
+________________________________ test_tmp_hook _________________________________
+
+    def test_tmp_hook():
+>       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_tmp_hook.py:2: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_tmp_hook.py::test_tmp_hook - assert (1 + 1) == 3
+1 failed, 42 passed in 0.72s
+```
+
+## Шаг 3: Исправляю тест
+→ Read tests/test_tmp_hook.py
+
+← Edit tests/test_tmp_hook.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/tests/test_tmp_hook.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/tests/test_tmp_hook.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/tests/test_tmp_hook.py
+@@ -1,2 +1,2 @@
+ def test_tmp_hook():
+-    assert 1 + 1 == 3
++    assert 1 + 1 == 2
+
+
+**Результат после шага 3:**
+```
+[check-after-edit] sh scripts/check.sh → PASS (exit 0)
+...........................................                              [100%]
+43 passed in 0.60s
+```
+
+## Шаг 4: Удаляю временный файл
+$ rm tests/test_tmp_hook.py
+(no output)
+
+---
+
+**Итог:** Hook работает. После записи файла с ошибкой — FAIL, после исправления — PASS. Файл удалён.

@@ -1,0 +1,90 @@
+
+> build · anthropic/claude-sonnet-4.5
+
+→ Read requirements.txt
+Я найду информацию о кастомных статус-кодах и exception handlers в FastAPI через Context7.
+
+Сначала определю версию FastAPI в проекте, а затем получу документацию.
+⚙ context7_resolve-library-id {"libraryName":"FastAPI","query":"return custom status code 409 from endpoint and register exception handler"}
+⚙ context7_query-docs {"libraryId":"/websites/fastapi_tiangolo","query":"how to register exception handler add_exception_handler"}
+⚙ context7_query-docs {"libraryId":"/websites/fastapi_tiangolo","query":"how to return custom status code 409 conflict from endpoint"}
+Отлично! Вот информация из официальной документации FastAPI:
+
+## 1. Как вернуть кастомный статус 409 из эндпоинта
+
+Есть несколько способов:
+
+### Способ 1: Через `JSONResponse` напрямую
+```python
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+@app.post("/items/{item_id}")
+async def create_item(item_id: str):
+    # Проверка на конфликт
+    if item_exists(item_id):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Item already exists"}
+        )
+    # Нормальный код
+    return {"item_id": item_id}
+```
+
+### Способ 2: Через `HTTPException`
+```python
+from fastapi import FastAPI, HTTPException, status
+
+app = FastAPI()
+
+@app.post("/items/{item_id}")
+async def create_item(item_id: str):
+    if item_exists(item_id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Item already exists"
+        )
+    return {"item_id": item_id}
+```
+
+**Константа для 409:** `status.HTTP_409_CONFLICT = 409`
+
+## 2. Как зарегистрировать exception handler
+
+### Через декоратор `@app.exception_handler()`
+```python
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+class ConflictException(Exception):
+    def __init__(self, detail: str):
+        self.detail = detail
+
+app = FastAPI()
+
+@app.exception_handler(ConflictException)
+async def conflict_exception_handler(request: Request, exc: ConflictException):
+    return JSONResponse(
+        status_code=409,
+        content={"detail": exc.detail}
+    )
+
+@app.post("/items/{item_id}")
+async def create_item(item_id: str):
+    if item_exists(item_id):
+        raise ConflictException(detail="Item already exists")
+    return {"item_id": item_id}
+```
+
+### Метод `.exception_handler()`
+
+**Сигнатура:** `exception_handler(exc_class_or_status_code: int | type[Exception])`
+
+- Принимает либо класс Exception, либо HTTP статус-код (int)
+- Возвращает декоратор для функции-обработчика
+- Обработчик должен принимать `request: Request` и `exc: <ExceptionType>`
+- Обработчик должен возвращать Response (например, `JSONResponse`)
+
+Ничего не изменял, только запросил документацию.

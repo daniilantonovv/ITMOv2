@@ -1,0 +1,38 @@
+
+> build · anthropic/claude-sonnet-4.5
+
+→ Read AGENTS.md
+→ Read docs/style-guide.md
+→ Read docs/requirements.md
+Прочитаю оба файла, чтобы понять правила style guide и найти примеры их применения.
+→ Read app/storage.py
+Теперь прочитаю код, чтобы найти примеры применения правил:
+→ Read app/main.py
+Отлично! Теперь у меня есть вся информация. Вот ответ:
+
+## Правило из style guide
+
+**Правило 3:** "Storage raises domain errors; one handler maps each to HTTP."
+
+Маршруты не ловят ошибки сами. Клиент получает только текст контракта, никогда — сообщения SQLite.
+
+## Где оно выполнено
+
+**`app/storage.py:58`** — здесь `CollectionStore.create()` ловит `sqlite3.IntegrityError` и преобразует её в доменную ошибку `DuplicateCartUrlError`:
+
+```python
+except sqlite3.IntegrityError as e:
+    if "cart_url" in str(e):
+        raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
+    raise
+```
+
+А затем **`app/main.py:56-61`** — один глобальный обработчик `handle_duplicate_cart_url` преобразует доменную ошибку в HTTP-ответ 409 с текстом контракта, без внутренних деталей SQLite.
+
+## Где оно может нарушиться в фиче B
+
+**`app/storage.py:38`** (и все методы storage) — при фиче B любой вызов `self._connect()` может выбросить `sqlite3.DatabaseError` (или подобные исключения SQLite), если база повреждена или недоступна.
+
+Сейчас эти исключения **не** преобразуются в доменные ошибки. Значит, они поднимутся до FastAPI, который вернёт 500 с внутренними деталями (сообщения SQLite, пути к файлам). Это нарушит правило 3 и требование фичи B: _"Internal error text (SQLite messages, paths, tracebacks) never reaches the client"_.
+
+Чтобы исправить: storage должен ловить SQLite-ошибки и бросать доменную ошибку (например, `StorageUnavailableError`), а в `main.py` — добавить обработчик, возвращающий `503 {"detail": "storage unavailable"}`.
