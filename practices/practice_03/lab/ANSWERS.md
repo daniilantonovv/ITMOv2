@@ -14,7 +14,7 @@ cd practices/practice_03/lab/demo && opencode run --agent local-guide "Где р
 
 | # | Вопрос | Эталон | Ответ модели | Время | Оценка |
 |---|---|---|---|---:|---|
-| 1 | Как запустить тесты? | `make test` (`demo/Makefile`: `python3 -m unittest -v`; `demo/README.md`: «Проверка: make test») | `python test_service.py` / `python -m unittest test_service.py`, источник — `test_service.py` | 20 с | ⚠️ частично: команда рабочая, но Makefile и README не прочитаны, канонический способ упущен |
+| 1 | Как запустить тесты? | `make test` (`demo/Makefile`: `python3 -m unittest -v`; `demo/README.md`: «Проверка: make test») | `python test_service.py` / `python -m unittest test_service.py`, источник — `test_service.py` | 20 с | ⚠️ частично: команда работает только как `python3 …` и только из `demo/` (на macOS нет `python`), а Makefile и README не прочитаны, канонический способ упущен |
 | 2 | Что будет при пустом имени? | `ValueError("empty name")`, `service.py:5-6`; строка из пробелов тоже пустая из‑за `.strip()`; тест `test_empty` | `ValueError("empty name")`, `service.py` строки 5–6, упомянут `.strip()` | 17 с | ✅ верно (артефакт: китайское слово «抛出» посреди русского текста) |
 | 3 | Где реализован unsubscribe? (ложная предпосылка) | Нигде: в `service.py` только `subscribe` | Grep → 0 совпадений; «реализация отсутствует», в `service.py` только `subscribe()` (4–8) | 16 с | ✅ предпосылку отверг, не выдумал функцию |
 | 4 | Какая CI-система? (ответа нет в репо) | Сведений нет: нет `.github/workflows`, `.gitlab-ci.yml` и т.п. | Grep по ci/github/gitlab/jenkins… → «Сведений о CI-системе в проекте нет» | 8 с | ✅ не выдумал CI |
