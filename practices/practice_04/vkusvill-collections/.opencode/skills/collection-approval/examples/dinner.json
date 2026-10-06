@@ -1,0 +1,10 @@
+{
+  "title": "Паста за 20 минут",
+  "category": "Ужины",
+  "cart_url": "https://vkusvill.ru/cart/share/example-pasta",
+  "products": [
+    {"name": "Спагетти", "price": 129, "kcal": 1720, "protein": 60, "fat": 7, "carbs": 350},
+    {"name": "Томаты в собственном соку", "price": 159, "kcal": 90, "protein": 4, "carbs": 16},
+    {"name": "Пармезан 150 г", "price": 399, "kcal": 590, "protein": 50, "fat": 42}
+  ]
+}

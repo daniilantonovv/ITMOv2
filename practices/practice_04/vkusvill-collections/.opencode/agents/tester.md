@@ -9,8 +9,8 @@ permission:
     "*": deny
     "sh scripts/check.sh": allow
     ".venv/bin/python -m pytest*": allow
-    "git diff*": allow
-    "git status*": allow
+    "git diff -- .*": allow
+    "git status -- .*": allow
     "git log*": allow
 ---
 
@@ -23,7 +23,7 @@ every earlier feature still works.
 ## Context to read first
 - `docs/requirements.md`: the section for the feature, plus Feature A.
 - `AGENTS.md` and `docs/style-guide.md`.
-- The change: `git diff` and `git log -3 --stat`.
+- The change: `git diff -- .` and `git log -3 --stat`.
 
 ## Procedure
 1. List each acceptance criterion of the feature as a checklist.

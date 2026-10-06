@@ -79,11 +79,12 @@ React to a FAIL before moving on.
 
 ## Saving collections from the VkusVill MCP
 
-- Show the operator the title, category, products with prices and the cart
-  link **before** saving.
-- Call `POST /api/collections` only after an explicit "yes" in chat. No
-  approval means nothing is saved.
-- Never invent prices, nutrition or cart links. Use only what the MCP returned.
+- Load the `collection-approval` skill and follow its steps. Its script
+  `preview.py` validates the data and prints the receipt for the operator.
+- Save only through the `collections` MCP tool `save_collection`
+  (`mcp_server/server.py`), and only after an explicit "да" to the receipt
+  you showed. Use `list_collections` to check what is already saved.
+- Never invent prices, nutrition or cart links. Use only what the VkusVill MCP returned.
 
 ## Boundaries
 
@@ -92,7 +93,8 @@ React to a FAIL before moving on.
 - **Never** weaken, skip or delete a test to get green.
 - **Never** commit, push or run destructive git commands. The human reviews and commits.
 - **Never** read or print secrets (`.env`, API keys, the root `opencode.json`,
-  MCP credentials).
+  MCP credentials). Run `git diff`/`git status` only for this folder
+  (`git diff -- .`): a repo-wide diff once printed the root `opencode.json` with its key.
 - **Ask first** before adding a dependency, a framework or a build step, or
   before editing files outside this folder.
 

@@ -1,0 +1,60 @@
+HTTP Request: POST http://127.0.0.1:8012/api/collections "HTTP/1.1 201 Created"
+HTTP Request: POST http://127.0.0.1:8012/api/collections "HTTP/1.1 409 Conflict"
+Tool 'save_collection' failed: 'Error executing tool save_collection: Not saved: a collection with this cart_url already exists.'
+HTTP Request: POST http://127.0.0.1:8012/api/collections "HTTP/1.1 422 Unprocessable Content"
+Tool 'save_collection' failed: 'Error executing tool save_collection: Not saved: invalid input. cart_url: Value error, cart_url must be an https link on vkusvill.ru; products.0.price: Input should be greater than or equal to 0'
+Tool 'save_collection' failed: 'Error executing tool save_collection: Not saved: the operator has not approved this collection. Show it to the operator and ask for an explicit yes first.'
+HTTP Request: GET http://127.0.0.1:8012/api/collections?limit=3 "HTTP/1.1 200 OK"
+Tool 'save_collection' failed: 'Error executing tool save_collection: The collections service is not reachable at http://127.0.0.1:9. Start it with: .venv/bin/uvicorn app.main:create_app --factory --port 8010'
+### tools/list
+- save_collection: Save an approved product collection to the dashboard.
+- list_collections: List saved collections, newest first (limit 1–100, optional exact category).
+
+### 1. save_collection — approved, valid
+is_error: False
+{
+  "id": 1,
+  "title": "Ужин за 20 минут",
+  "category": "Ужины",
+  "product_count": 2,
+  "total_price": 288.0,
+  "url": "http://127.0.0.1:8012/api/collections/1"
+}
+
+### 2. save_collection — same cart again
+is_error: True
+Error executing tool save_collection: Not saved: a collection with this cart_url already exists.
+
+### 3. save_collection — invalid input
+is_error: True
+Error executing tool save_collection: Not saved: invalid input. cart_url: Value error, cart_url must be an https link on vkusvill.ru; products.0.price: Input should be greater than or equal to 0
+
+### 4. save_collection — not approved
+is_error: True
+Error executing tool save_collection: Not saved: the operator has not approved this collection. Show it to the operator and ask for an explicit yes first.
+
+### 5. list_collections
+is_error: False
+{
+  "collections": [
+    {
+      "id": 1,
+      "title": "Ужин за 20 минут",
+      "category": "Ужины",
+      "cart_url": "https://vkusvill.ru/cart/share/mcp-demo-1",
+      "created_at": "2026-10-06T13:20:01+00:00",
+      "product_count": 2,
+      "totals": {
+        "price": 288.0,
+        "kcal": 1810.0,
+        "protein": 64.0,
+        "fat": 7.0,
+        "carbs": 366.0
+      }
+    }
+  ]
+}
+
+### 6. save_collection — service is down
+is_error: True
+Error executing tool save_collection: The collections service is not reachable at http://127.0.0.1:9. Start it with: .venv/bin/uvicorn app.main:create_app --factory --port 8010

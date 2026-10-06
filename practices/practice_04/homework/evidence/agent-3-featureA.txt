@@ -1,0 +1,1136 @@
+
+> build · anthropic/claude-sonnet-4.5
+
+→ Skill "test-driven-development"
+Сейчас начну реализовывать Feature A (no duplicate carts) по требованиям. Сначала загружу skill и изучу требования.
+→ Read docs/requirements.md
+→ Read app/models.py
+→ Read app/storage.py
+Изучу существующий код для понимания структуры.
+→ Read tests/conftest.py
+Теперь посмотрю существующие тесты, чтобы понять стиль и найти примеры.
+✱ Glob "tests/test_*.py" in . · 3 matches
+→ Read tests/test_collections_crud.py
+→ Read tests/test_collections_limits.py
+
+# Todos
+[•] Написать падающие тесты для Feature A (no duplicate carts)
+[ ] Запустить тесты и убедиться, что они падают корректно (RED)
+[ ] Добавить проверку дубликатов в storage.py
+[ ] Добавить обработку ошибки дубликата в main.py
+[ ] Запустить все тесты и убедиться, что они проходят (GREEN)
+[ ] Запустить финальную проверку sh scripts/check.sh
+
+Отлично! Теперь понял структуру. Согласно требованиям Feature A, мне нужно реализовать проверку дубликатов `cart_url`. Начну с написания падающих тестов по TDD.
+Теперь напишу тесты для Feature A. Согласно требованиям:
+
+**Acceptance criteria:**
+1. POST с дубликатом `cart_url` → 409 с сообщением "collection with this cart_url already exists"
+2. PUT с `cart_url` другой коллекции → 409 (но свой `cart_url` можно оставить)
+3. После удаления коллекции её `cart_url` можно использовать снова
+4. После вытеснения старой коллекции (100+ cap) её `cart_url` можно использовать снова
+← Write tests/test_feature_a_no_duplicate_carts.py
+Wrote file successfully.
+
+# Todos
+[✓] Написать падающие тесты для Feature A (no duplicate carts)
+[•] Запустить тесты и убедиться, что они падают корректно (RED)
+[ ] Добавить проверку дубликатов в storage.py
+[ ] Добавить обработку ошибки дубликата в main.py
+[ ] Запустить все тесты и убедиться, что они проходят (GREEN)
+[ ] Запустить финальную проверку sh scripts/check.sh
+
+Теперь запущу тесты, чтобы убедиться, что они падают корректно (RED phase):
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && .venv/bin/python -m pytest tests/test_feature_a_no_duplicate_carts.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- ~/ITMOv2/practices/practice_04/vkusvill-collections/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: ~/ITMOv2/practices/practice_04/vkusvill-collections
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 7 items
+
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409 FAILED [ 14%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_does_not_modify_original PASSED [ 28%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409 FAILED [ 42%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_keeping_own_cart_url_is_allowed PASSED [ 57%]
+tests/test_feature_a_no_duplicate_carts.py::test_deleted_cart_url_can_be_reused PASSED [ 71%]
+tests/test_feature_a_no_duplicate_carts.py::test_evicted_cart_url_can_be_reused PASSED [ 85%]
+tests/test_feature_a_no_duplicate_carts.py::test_cart_urls_are_compared_exactly PASSED [100%]
+
+=================================== FAILURES ===================================
+___________________ test_post_duplicate_cart_url_returns_409 ___________________
+
+client = <starlette.testclient.TestClient object at 0x10a5b6e40>
+new_collection = <function make_collection at 0x10a41bd70>
+
+    def test_post_duplicate_cart_url_returns_409(client, new_collection):
+        """POST with a cart_url that already exists returns 409 and does not store."""
+        cart = "https://vkusvill.ru/cart/share/abc123"
+        client.post("/api/collections", json=new_collection(cart_url=cart))
+    
+        response = client.post("/api/collections", json=new_collection(cart_url=cart, title="Another"))
+    
+>       assert response.status_code == 409
+E       assert 201 == 409
+E        +  where 201 = <Response [201 Created]>.status_code
+
+tests/test_feature_a_no_duplicate_carts.py:11: AssertionError
+_____________ test_put_to_another_collections_cart_url_returns_409 _____________
+
+client = <starlette.testclient.TestClient object at 0x10a84ed50>
+new_collection = <function make_collection at 0x10a41bd70>
+
+    def test_put_to_another_collections_cart_url_returns_409(client, new_collection):
+        """PUT that tries to use another collection's cart_url returns 409."""
+        cart_a = "https://vkusvill.ru/cart/share/aaa"
+        cart_b = "https://vkusvill.ru/cart/share/bbb"
+        first = client.post("/api/collections", json=new_collection(cart_url=cart_a, title="First")).json()
+        second = client.post("/api/collections", json=new_collection(cart_url=cart_b, title="Second")).json()
+    
+        response = client.put(
+            f"/api/collections/{second['id']}", json=new_collection(cart_url=cart_a, title="Changed")
+        )
+    
+>       assert response.status_code == 409
+E       assert 200 == 409
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests/test_feature_a_no_duplicate_carts.py:41: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409
+FAILED tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409
+========================= 2 failed, 5 passed in 0.24s ==========================
+
+# Todos
+[✓] Написать падающие тесты для Feature A (no duplicate carts)
+[✓] Запустить тесты и убедиться, что они падают корректно (RED)
+[•] Добавить проверку дубликатов в storage.py
+[ ] Добавить обработку ошибки дубликата в main.py
+[ ] Запустить все тесты и убедиться, что они проходят (GREEN)
+[ ] Запустить финальную проверку sh scripts/check.sh
+
+Отлично! Два теста падают корректно (ожидаем 409, получаем 201 и 200). Остальные пять тестов проходят, потому что они проверяют, что поведение еще не изменилось. Это правильная RED phase.
+→ Read app/main.py
+Теперь GREEN phase: добавлю минимальный код для прохождения тестов. Сначала посмотрю main.py, чтобы понять, как обрабатываются ошибки:
+Теперь нужно добавить custom exception для дубликата `cart_url` и обработку в storage и main. Начну с создания исключения и добавления проверки в `storage.py`:
+
+← Edit app/storage.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -6,8 +6,13 @@
+ from app.models import CategoryCount, Collection, CollectionIn, Product, Totals
+ 
+ MAX_COLLECTIONS = 100
+ 
++
++class DuplicateCartUrlError(Exception):
++    """Raised when trying to store a collection with a cart_url that already exists."""
++    pass
++
+ SCHEMA = """
+ CREATE TABLE IF NOT EXISTS collections (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     title TEXT NOT NULL,
+
+
+Теперь добавлю проверку дубликатов в методы `create` и `update`:
+← Edit app/storage.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -40,8 +40,15 @@
+ 
+ def create(self, data: CollectionIn) -> Collection:
+     created_at = datetime.now(UTC).isoformat(timespec="seconds")
+     with self._connect() as db:
++        # Check for duplicate cart_url
++        existing = db.execute(
++            "SELECT id FROM collections WHERE cart_url = ?", (data.cart_url,)
++        ).fetchone()
++        if existing:
++            raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++        
+         cursor = db.execute(
+             "INSERT INTO collections (title, category, cart_url, products, created_at)"
+             " VALUES (?, ?, ?, ?, ?)",
+             (data.title, data.category, data.cart_url, _dump(data.products), created_at),
+
+
+← Edit app/storage.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -81,8 +81,16 @@
+     return [_to_collection(row) for row in rows]
+ 
+ def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
+     with self._connect() as db:
++        # Check if trying to use another collection's cart_url
++        existing = db.execute(
++            "SELECT id FROM collections WHERE cart_url = ? AND id != ?",
++            (data.cart_url, collection_id),
++        ).fetchone()
++        if existing:
++            raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++        
+         cursor = db.execute(
+             "UPDATE collections SET title = ?, category = ?, cart_url = ?, products = ?"
+             " WHERE id = ?",
+             (data.title, data.category, data.cart_url, _dump(data.products), collection_id),
+
+
+# Todos
+[✓] Написать падающие тесты для Feature A (no duplicate carts)
+[✓] Запустить тесты и убедиться, что они падают корректно (RED)
+[✓] Добавить проверку дубликатов в storage.py
+[•] Добавить обработку ошибки дубликата в main.py
+[ ] Запустить все тесты и убедиться, что они проходят (GREEN)
+[ ] Запустить финальную проверку sh scripts/check.sh
+
+Теперь добавлю обработку исключения в main.py:
+← Edit app/main.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
+@@ -6,9 +6,9 @@
+ from fastapi.responses import FileResponse
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
+-from app.storage import CollectionStore
++from app.storage import CollectionStore, DuplicateCartUrlError
+ 
+ STATIC_DIR = Path(__file__).parent / "static"
+ DEFAULT_DB = "data/collections.db"
+ 
+
+
+← Edit app/main.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
+@@ -23,9 +23,15 @@
+     return collection
+ 
+ @api.post("/collections", status_code=status.HTTP_201_CREATED)
+ def create_collection(data: CollectionIn) -> Collection:
+-    return store.create(data)
++    try:
++        return store.create(data)
++    except DuplicateCartUrlError:
++        raise HTTPException(
++            status.HTTP_409_CONFLICT,
++            detail="collection with this cart_url already exists",
++        )
+ 
+ @api.get("/collections")
+ def list_collections(
+     limit: Annotated[int, Query(ge=1, le=100)] = 10,
+
+
+← Edit app/main.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/app/main.py
+@@ -44,9 +44,15 @@
+     return found(store.get(collection_id))
+ 
+ @api.put("/collections/{collection_id}")
+ def update_collection(collection_id: int, data: CollectionIn) -> Collection:
+-    return found(store.update(collection_id, data))
++    try:
++        return found(store.update(collection_id, data))
++    except DuplicateCartUrlError:
++        raise HTTPException(
++            status.HTTP_409_CONFLICT,
++            detail="collection with this cart_url already exists",
++        )
+ 
+ @api.delete("/collections/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+ def delete_collection(collection_id: int) -> Response:
+     if not store.delete(collection_id):
+
+
+# Todos
+[✓] Написать падающие тесты для Feature A (no duplicate carts)
+[✓] Запустить тесты и убедиться, что они падают корректно (RED)
+[✓] Добавить проверку дубликатов в storage.py
+[✓] Добавить обработку ошибки дубликата в main.py
+[•] Запустить все тесты и убедиться, что они проходят (GREEN)
+[ ] Запустить финальную проверку sh scripts/check.sh
+
+Теперь запущу новые тесты, чтобы проверить, что они проходят:
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && .venv/bin/python -m pytest tests/test_feature_a_no_duplicate_carts.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- ~/ITMOv2/practices/practice_04/vkusvill-collections/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: ~/ITMOv2/practices/practice_04/vkusvill-collections
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 7 items
+
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409 PASSED [ 14%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_does_not_modify_original PASSED [ 28%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409 PASSED [ 42%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_keeping_own_cart_url_is_allowed PASSED [ 57%]
+tests/test_feature_a_no_duplicate_carts.py::test_deleted_cart_url_can_be_reused PASSED [ 71%]
+tests/test_feature_a_no_duplicate_carts.py::test_evicted_cart_url_can_be_reused PASSED [ 85%]
+tests/test_feature_a_no_duplicate_carts.py::test_cart_urls_are_compared_exactly PASSED [100%]
+
+============================== 7 passed in 0.22s ===============================
+
+Отлично! Все тесты Feature A проходят. Теперь запущу все тесты, чтобы убедиться, что я не сломал существующую функциональность:
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && .venv/bin/python -m pytest tests/ -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- ~/ITMOv2/practices/practice_04/vkusvill-collections/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: ~/ITMOv2/practices/practice_04/vkusvill-collections
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 39 items
+
+tests/test_collections_crud.py::test_create_returns_201_with_id_and_totals PASSED [  2%]
+tests/test_collections_crud.py::test_get_returns_created_collection PASSED [  5%]
+tests/test_collections_crud.py::test_get_missing_returns_404 PASSED      [  7%]
+tests/test_collections_crud.py::test_list_returns_newest_first_summaries FAILED [ 10%]
+tests/test_collections_crud.py::test_list_defaults_to_10_items FAILED    [ 12%]
+tests/test_collections_crud.py::test_list_respects_limit FAILED          [ 15%]
+tests/test_collections_crud.py::test_list_rejects_limit_out_of_range PASSED [ 17%]
+tests/test_collections_crud.py::test_list_filters_by_category FAILED     [ 20%]
+tests/test_collections_crud.py::test_categories_are_grouped_with_counts FAILED [ 23%]
+tests/test_collections_crud.py::test_update_replaces_fields_but_keeps_id_and_created_at PASSED [ 25%]
+tests/test_collections_crud.py::test_update_missing_returns_404 PASSED   [ 28%]
+tests/test_collections_crud.py::test_delete_removes_collection PASSED    [ 30%]
+tests/test_collections_crud.py::test_delete_missing_returns_404 PASSED   [ 33%]
+tests/test_collections_crud.py::test_data_survives_app_restart PASSED    [ 35%]
+tests/test_collections_limits.py::test_creating_101st_collection_evicts_the_oldest FAILED [ 38%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[title0] PASSED [ 41%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[title1] PASSED [ 43%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[category0] PASSED [ 46%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[category1] PASSED [ 48%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url0] PASSED [ 51%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url1] PASSED [ 53%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url2] PASSED [ 56%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url3] PASSED [ 58%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products0] PASSED [ 61%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products1] PASSED [ 64%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products2] PASSED [ 66%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products3] PASSED [ 69%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products4] PASSED [ 71%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products5] PASSED [ 74%]
+tests/test_collections_limits.py::test_subdomain_cart_url_is_accepted PASSED [ 76%]
+tests/test_collections_limits.py::test_title_and_category_are_trimmed PASSED [ 79%]
+tests/test_dashboard.py::test_dashboard_page_is_served PASSED            [ 82%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409 PASSED [ 84%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_does_not_modify_original PASSED [ 87%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409 PASSED [ 89%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_keeping_own_cart_url_is_allowed PASSED [ 92%]
+tests/test_feature_a_no_duplicate_carts.py::test_deleted_cart_url_can_be_reused PASSED [ 94%]
+tests/test_feature_a_no_duplicate_carts.py::test_evicted_cart_url_can_be_reused PASSED [ 97%]
+tests/test_feature_a_no_duplicate_carts.py::test_cart_urls_are_compared_exactly PASSED [100%]
+
+=================================== FAILURES ===================================
+___________________ test_list_returns_newest_first_summaries ___________________
+
+client = <starlette.testclient.TestClient object at 0x10a068b00>
+new_collection = <function make_collection at 0x109c281a0>
+
+    def test_list_returns_newest_first_summaries(client, new_collection):
+        for title in ["first", "second", "third"]:
+            client.post("/api/collections", json=new_collection(title=title))
+    
+        response = client.get("/api/collections")
+    
+        assert response.status_code == 200
+        items = response.json()
+>       assert [item["title"] for item in items] == ["third", "second", "first"]
+E       AssertionError: assert ['first'] == ['third', 'second', 'first']
+E         
+E         At index 0 diff: 'first' != 'third'
+E         Right contains 2 more items, first extra item: 'second'
+E         
+E         Full diff:
+E           [
+E         -     'third',...
+E         
+E         ...Full output truncated (3 lines hidden), use '-vv' to show
+
+tests/test_collections_crud.py:42: AssertionError
+________________________ test_list_defaults_to_10_items ________________________
+
+client = <starlette.testclient.TestClient object at 0x10a06a650>
+new_collection = <function make_collection at 0x109c281a0>
+
+    def test_list_defaults_to_10_items(client, new_collection):
+        for i in range(12):
+            client.post("/api/collections", json=new_collection(title=f"c{i}"))
+    
+        items = client.get("/api/collections").json()
+    
+>       assert len(items) == 10
+E       AssertionError: assert 1 == 10
+E        +  where 1 = len([{'id': 1, 'title': 'c0', 'category': 'Завтраки', 'cart_url': 'https://vkusvill.ru/cart/share/abc123', ...}])
+
+tests/test_collections_crud.py:54: AssertionError
+___________________________ test_list_respects_limit ___________________________
+
+client = <starlette.testclient.TestClient object at 0x109faf890>
+new_collection = <function make_collection at 0x109c281a0>
+
+    def test_list_respects_limit(client, new_collection):
+        for i in range(3):
+            client.post("/api/collections", json=new_collection(title=f"c{i}"))
+    
+>       assert len(client.get("/api/collections?limit=2").json()) == 2
+E       AssertionError: assert 1 == 2
+E        +  where 1 = len([{'id': 1, 'title': 'c0', 'category': 'Завтраки', 'cart_url': 'https://vkusvill.ru/cart/share/abc123', ...}])
+E        +    where [{'id': 1, 'title': 'c0', 'category': 'Завтраки', 'cart_url': 'https://vkusvill.ru/cart/share/abc123', ...}] = json()
+E        +      where json = <Response [200 OK]>.json
+E        +        where <Response [200 OK]> = get('/api/collections?limit=2')
+E        +          where get = <starlette.testclient.TestClient object at 0x109faf890>.get
+
+tests/test_collections_crud.py:62: AssertionError
+________________________ test_list_filters_by_category _________________________
+
+client = <starlette.testclient.TestClient object at 0x109fab020>
+new_collection = <function make_collection at 0x109c281a0>
+
+    def test_list_filters_by_category(client, new_collection):
+        client.post("/api/collections", json=new_collection(title="a", category="Завтраки"))
+        client.post("/api/collections", json=new_collection(title="b", category="Ужины"))
+    
+        items = client.get("/api/collections", params={"category": "Ужины"}).json()
+    
+>       assert [item["title"] for item in items] == ["b"]
+E       AssertionError: assert [] == ['b']
+E         
+E         Right contains one more item: 'b'
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     'b',
+E         - ]
+
+tests/test_collections_crud.py:76: AssertionError
+___________________ test_categories_are_grouped_with_counts ____________________
+
+client = <starlette.testclient.TestClient object at 0x10a0f98c0>
+new_collection = <function make_collection at 0x109c281a0>
+
+    def test_categories_are_grouped_with_counts(client, new_collection):
+        for category in ["Ужины", "Завтраки", "Ужины"]:
+            client.post("/api/collections", json=new_collection(category=category))
+    
+        response = client.get("/api/categories")
+    
+        assert response.status_code == 200
+>       assert response.json() == [
+            {"category": "Завтраки", "count": 1},
+            {"category": "Ужины", "count": 2},
+        ]
+E       AssertionError: assert [{'category':..., 'count': 1}] == [{'category':..., 'count': 2}]
+E         
+E         At index 0 diff: {'category': 'Ужины', 'count': 1} != {'category': 'Завтраки', 'count': 1}
+E         Right contains one more item: {'category': 'Ужины', 'count': 2}
+E         
+E         Full diff:
+E           [
+E               {...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show
+
+tests/test_collections_crud.py:86: AssertionError
+_______________ test_creating_101st_collection_evicts_the_oldest _______________
+
+client = <starlette.testclient.TestClient object at 0x10a13ebe0>
+new_collection = <function make_collection at 0x109c281a0>
+
+    def test_creating_101st_collection_evicts_the_oldest(client, new_collection):
+        ids = [
+>           client.post("/api/collections", json=new_collection(title=f"c{i}")).json()["id"]
+            for i in range(MAX_COLLECTIONS + 1)
+        ]
+E       KeyError: 'id'
+
+tests/test_collections_limits.py:8: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_collections_crud.py::test_list_returns_newest_first_summaries
+FAILED tests/test_collections_crud.py::test_list_defaults_to_10_items - Asser...
+FAILED tests/test_collections_crud.py::test_list_respects_limit - AssertionEr...
+FAILED tests/test_collections_crud.py::test_list_filters_by_category - Assert...
+FAILED tests/test_collections_crud.py::test_categories_are_grouped_with_counts
+FAILED tests/test_collections_limits.py::test_creating_101st_collection_evicts_the_oldest
+========================= 6 failed, 33 passed in 0.55s =========================
+
+Проблема! Тесты падают, потому что все они используют один и тот же `cart_url` в фикстуре `new_collection`. Теперь мой код блокирует дубликаты. Нужно сделать так, чтобы каждый POST использовал уникальный `cart_url`. 
+
+Посмотрю на фикстуру conftest.py снова:
+→ Read tests/conftest.py
+Проблема в том, что `make_collection` всегда возвращает один и тот же `cart_url`. Мне нужно сделать его уникальным по умолчанию. Лучший способ — использовать счетчик или UUID. Но согласно правилам проекта, мне нужно минимальное решение. Я добавлю счетчик в функцию:
+
+← Edit tests/conftest.py
+Index: ~/ITMOv2/practices/practice_04/vkusvill-collections/tests/conftest.py
+===================================================================
+--- ~/ITMOv2/practices/practice_04/vkusvill-collections/tests/conftest.py
++++ ~/ITMOv2/practices/practice_04/vkusvill-collections/tests/conftest.py
+@@ -8,13 +8,18 @@
+ def client(tmp_path):
+     return TestClient(create_app(db_path=tmp_path / "test.db"))
+ 
+ 
++_cart_counter = 0
++
++
+ def make_collection(**overrides) -> dict:
++    global _cart_counter
++    _cart_counter += 1
+     collection = {
+         "title": "Завтрак на двоих",
+         "category": "Завтраки",
+-        "cart_url": "https://vkusvill.ru/cart/share/abc123",
++        "cart_url": f"https://vkusvill.ru/cart/share/unique{_cart_counter}",
+         "products": [
+             {"name": "Сырники", "price": 189.9, "quantity": 2,
+              "kcal": 220, "protein": 15, "fat": 9.5, "carbs": 20},
+             {"name": "Сметана 15%", "price": 89, "kcal": 160,
+
+
+Теперь запущу все тесты снова:
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && .venv/bin/python -m pytest tests/ -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- ~/ITMOv2/practices/practice_04/vkusvill-collections/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: ~/ITMOv2/practices/practice_04/vkusvill-collections
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 39 items
+
+tests/test_collections_crud.py::test_create_returns_201_with_id_and_totals PASSED [  2%]
+tests/test_collections_crud.py::test_get_returns_created_collection PASSED [  5%]
+tests/test_collections_crud.py::test_get_missing_returns_404 PASSED      [  7%]
+tests/test_collections_crud.py::test_list_returns_newest_first_summaries PASSED [ 10%]
+tests/test_collections_crud.py::test_list_defaults_to_10_items PASSED    [ 12%]
+tests/test_collections_crud.py::test_list_respects_limit PASSED          [ 15%]
+tests/test_collections_crud.py::test_list_rejects_limit_out_of_range PASSED [ 17%]
+tests/test_collections_crud.py::test_list_filters_by_category PASSED     [ 20%]
+tests/test_collections_crud.py::test_categories_are_grouped_with_counts PASSED [ 23%]
+tests/test_collections_crud.py::test_update_replaces_fields_but_keeps_id_and_created_at PASSED [ 25%]
+tests/test_collections_crud.py::test_update_missing_returns_404 PASSED   [ 28%]
+tests/test_collections_crud.py::test_delete_removes_collection PASSED    [ 30%]
+tests/test_collections_crud.py::test_delete_missing_returns_404 PASSED   [ 33%]
+tests/test_collections_crud.py::test_data_survives_app_restart PASSED    [ 35%]
+tests/test_collections_limits.py::test_creating_101st_collection_evicts_the_oldest PASSED [ 38%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[title0] PASSED [ 41%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[title1] PASSED [ 43%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[category0] PASSED [ 46%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[category1] PASSED [ 48%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url0] PASSED [ 51%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url1] PASSED [ 53%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url2] PASSED [ 56%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[cart_url3] PASSED [ 58%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products0] PASSED [ 61%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products1] PASSED [ 64%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products2] PASSED [ 66%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products3] PASSED [ 69%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products4] PASSED [ 71%]
+tests/test_collections_limits.py::test_invalid_collection_is_rejected_and_not_stored[products5] PASSED [ 74%]
+tests/test_collections_limits.py::test_subdomain_cart_url_is_accepted PASSED [ 76%]
+tests/test_collections_limits.py::test_title_and_category_are_trimmed PASSED [ 79%]
+tests/test_dashboard.py::test_dashboard_page_is_served PASSED            [ 82%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409 PASSED [ 84%]
+tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_does_not_modify_original PASSED [ 87%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409 PASSED [ 89%]
+tests/test_feature_a_no_duplicate_carts.py::test_put_keeping_own_cart_url_is_allowed PASSED [ 92%]
+tests/test_feature_a_no_duplicate_carts.py::test_deleted_cart_url_can_be_reused PASSED [ 94%]
+tests/test_feature_a_no_duplicate_carts.py::test_evicted_cart_url_can_be_reused PASSED [ 97%]
+tests/test_feature_a_no_duplicate_carts.py::test_cart_urls_are_compared_exactly PASSED [100%]
+
+============================== 39 passed in 0.67s ==============================
+
+# Todos
+[✓] Написать падающие тесты для Feature A (no duplicate carts)
+[✓] Запустить тесты и убедиться, что они падают корректно (RED)
+[✓] Добавить проверку дубликатов в storage.py
+[✓] Добавить обработку ошибки дубликата в main.py
+[✓] Запустить все тесты и убедиться, что они проходят (GREEN)
+[•] Запустить финальную проверку sh scripts/check.sh
+
+Отлично! Все тесты проходят. Теперь запущу финальную проверку `sh scripts/check.sh`:
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && sh scripts/check.sh
+.......................................                                  [100%]
+39 passed in 0.68s
+
+Превосходно! Все проверки прошли. Теперь покажу diff изменений:
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && git diff
+diff --git a/.gitignore b/.gitignore
+index da44a08..98f1c60 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -173,3 +173,5 @@ student_solutions/
+ !.roo/
+ !.specify/
+ !.vscode/
++.opencode/plugins/
++.opencode/plugin/
+diff --git a/opencode.json b/opencode.json
+index fd83fb5..d23f6f9 100644
+--- a/opencode.json
++++ b/opencode.json
+@@ -1,13 +1,15 @@
+ {
+   "$schema": "https://opencode.ai/config.json",
+-  "default_agent": "build",
++  "model": "ollama/itmo-agent",
++  "small_model": "ollama/itmo-agent",
++  "default_agent": "local-qwen",
+   "provider": {
+     "vsellm": {
+       "npm": "@ai-sdk/openai-compatible",
+       "name": "VseLLM",
+       "options": {
+         "baseURL": "https://litellm.data-light.ru",
+-        "apiKey": "{env:VSELLM_API_KEY}"
++        "apiKey": "[REDACTED]"
+       },
+       "models": {
+         "openai/gpt-5": {
+@@ -17,6 +19,21 @@
+           "name": "anthropic/claude-sonnet-4"
+         }
+       }
++    },
++    "ollama": {
++      "npm": "@ai-sdk/openai-compatible",
++      "name": "Ollama local",
++      "options": {
++        "baseURL": "http://localhost:11434/v1"
++      },
++      "models": {
++        "itmo-agent": {
++          "name": "ITMO local 64k (qwen3.5:4b)",
++          "limit": { "context": 65536, "output": 4096 },
++          "options": { "reasoningEffort": "none" }
++        }
++      }
+     }
+-  }
++  },
++  "enabled_providers": ["ollama"]
+ }
+diff --git a/practices/practice_03/lab/demo/opencode.json b/practices/practice_03/lab/demo/opencode.json
+index 8a53b7f..5b76e17 100644
+--- a/practices/practice_03/lab/demo/opencode.json
++++ b/practices/practice_03/lab/demo/opencode.json
+@@ -11,16 +11,25 @@
+       },
+       "models": {
+         "itmo-agent": {
+-          "name": "ITMO local 64k",
++          "name": "ITMO local 64k (qwen3.5:4b)",
+           "limit": {
+             "context": 65536,
+             "output": 4096
++          },
++          "options": {
++            "reasoningEffort": "none"
+           }
+         }
+       }
+     }
+   },
+   "agent": {
++    "local-qwen": {
++      "description": "Local Qwen 3.5 4B via Ollama",
++      "mode": "primary",
++      "model": "ollama/itmo-agent",
++      "steps": 6
++    },
+     "local-guide": {
+       "description": "Read-only local repository assistant",
+       "mode": "primary",
+@@ -35,4 +44,3 @@
+     }
+   }
+ }
+-
+diff --git a/practices/practice_04/vkusvill-collections/app/main.py b/practices/practice_04/vkusvill-collections/app/main.py
+index aa6b6c5..2396737 100644
+--- a/practices/practice_04/vkusvill-collections/app/main.py
++++ b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
+-from app.storage import CollectionStore
++from app.storage import CollectionStore, DuplicateCartUrlError
+ 
+ STATIC_DIR = Path(__file__).parent / "static"
+ DEFAULT_DB = "data/collections.db"
+@@ -24,7 +24,13 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
+ 
+     @api.post("/collections", status_code=status.HTTP_201_CREATED)
+     def create_collection(data: CollectionIn) -> Collection:
+-        return store.create(data)
++        try:
++            return store.create(data)
++        except DuplicateCartUrlError:
++            raise HTTPException(
++                status.HTTP_409_CONFLICT,
++                detail="collection with this cart_url already exists",
++            )
+ 
+     @api.get("/collections")
+     def list_collections(
+@@ -39,7 +45,13 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
+ 
+     @api.put("/collections/{collection_id}")
+     def update_collection(collection_id: int, data: CollectionIn) -> Collection:
+-        return found(store.update(collection_id, data))
++        try:
++            return found(store.update(collection_id, data))
++        except DuplicateCartUrlError:
++            raise HTTPException(
++                status.HTTP_409_CONFLICT,
++                detail="collection with this cart_url already exists",
++            )
+ 
+     @api.delete("/collections/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+     def delete_collection(collection_id: int) -> Response:
+diff --git a/practices/practice_04/vkusvill-collections/app/storage.py b/practices/practice_04/vkusvill-collections/app/storage.py
+index 796a50b..f0c3d09 100644
+--- a/practices/practice_04/vkusvill-collections/app/storage.py
++++ b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -7,6 +7,11 @@ from app.models import CategoryCount, Collection, CollectionIn, Product, Totals
+ 
+ MAX_COLLECTIONS = 100
+ 
++
++class DuplicateCartUrlError(Exception):
++    """Raised when trying to store a collection with a cart_url that already exists."""
++    pass
++
+ SCHEMA = """
+ CREATE TABLE IF NOT EXISTS collections (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+@@ -36,6 +41,13 @@ class CollectionStore:
+     def create(self, data: CollectionIn) -> Collection:
+         created_at = datetime.now(UTC).isoformat(timespec="seconds")
+         with self._connect() as db:
++            # Check for duplicate cart_url
++            existing = db.execute(
++                "SELECT id FROM collections WHERE cart_url = ?", (data.cart_url,)
++            ).fetchone()
++            if existing:
++                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++            
+             cursor = db.execute(
+                 "INSERT INTO collections (title, category, cart_url, products, created_at)"
+                 " VALUES (?, ?, ?, ?, ?)",
+@@ -70,6 +82,14 @@ class CollectionStore:
+ 
+     def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
+         with self._connect() as db:
++            # Check if trying to use another collection's cart_url
++            existing = db.execute(
++                "SELECT id FROM collections WHERE cart_url = ? AND id != ?",
++                (data.cart_url, collection_id),
++            ).fetchone()
++            if existing:
++                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++            
+             cursor = db.execute(
+                 "UPDATE collections SET title = ?, category = ?, cart_url = ?, products = ?"
+                 " WHERE id = ?",
+diff --git a/practices/practice_04/vkusvill-collections/docs/requirements.md b/practices/practice_04/vkusvill-collections/docs/requirements.md
+index f7e2836..f71a7f9 100644
+--- a/practices/practice_04/vkusvill-collections/docs/requirements.md
++++ b/practices/practice_04/vkusvill-collections/docs/requirements.md
+@@ -68,6 +68,25 @@ Served at `GET /`. A static page that uses only the API above.
+   VkusVill" link (new tab).
+ - Shows a clear empty state and a clear error state.
+ 
++## Feature A — no duplicate carts
++
++- `POST /api/collections` with a `cart_url` that is already stored →
++  `409 {"detail": "collection with this cart_url already exists"}`. Nothing is
++  stored, and the existing collection is unchanged.
++- `PUT /api/collections/{id}` that sets a `cart_url` used by **another**
++  collection → the same 409. Keeping its own `cart_url` is fine.
++- `cart_url` values are compared exactly as given.
++- After a collection is deleted (or evicted by the 100 cap), its `cart_url` can be saved again.
++
++## Feature B — storage failure
++
++- If the SQLite database cannot be read or written (for example, the file is
++  corrupted or not a database), every `/api` endpoint returns
++  `503 {"detail": "storage unavailable"}`.
++- Internal error text (SQLite messages, paths, tracebacks) never reaches the client.
++- `GET /` (the dashboard page) still loads and shows its error state.
++- All Feature A scenarios keep working.
++
+ ## Agent flow (not in this step)
+ 
+ The agent gets products and a cart link from the VkusVill MCP. It shows them
+@@ -79,4 +98,6 @@ approval**.
+ - [x] CRUD API
+ - [x] 100-collection cap
+ - [x] Dashboard
++- [ ] Feature A — no duplicate carts
++- [ ] Feature B — storage failure
+ - [ ] Agent flow
+diff --git a/practices/practice_04/vkusvill-collections/opencode.json b/practices/practice_04/vkusvill-collections/opencode.json
+index 12c58c0..a55defb 100644
+--- a/practices/practice_04/vkusvill-collections/opencode.json
++++ b/practices/practice_04/vkusvill-collections/opencode.json
+@@ -1,5 +1,17 @@
+ {
+   "$schema": "https://opencode.ai/config.json",
++  "model": "vsellm/anthropic/claude-sonnet-4.5",
++  "small_model": "vsellm/anthropic/claude-haiku-4.5",
++  "default_agent": "build",
++  "enabled_providers": ["vsellm", "ollama"],
++  "provider": {
++    "vsellm": {
++      "models": {
++        "anthropic/claude-sonnet-4.5": { "name": "Claude Sonnet 4.5 (VseLLM)" },
++        "anthropic/claude-haiku-4.5": { "name": "Claude Haiku 4.5 (VseLLM)" }
++      }
++    }
++  },
+   "mcp": {
+     "context7": {
+       "type": "remote",
+diff --git a/practices/practice_04/vkusvill-collections/tests/conftest.py b/practices/practice_04/vkusvill-collections/tests/conftest.py
+index 2f92c09..8fcd0d8 100644
+--- a/practices/practice_04/vkusvill-collections/tests/conftest.py
++++ b/practices/practice_04/vkusvill-collections/tests/conftest.py
+@@ -9,11 +9,16 @@ def client(tmp_path):
+     return TestClient(create_app(db_path=tmp_path / "test.db"))
+ 
+ 
++_cart_counter = 0
++
++
+ def make_collection(**overrides) -> dict:
++    global _cart_counter
++    _cart_counter += 1
+     collection = {
+         "title": "Завтрак на двоих",
+         "category": "Завтраки",
+-        "cart_url": "https://vkusvill.ru/cart/share/abc123",
++        "cart_url": f"https://vkusvill.ru/cart/share/unique{_cart_counter}",
+         "products": [
+             {"name": "Сырники", "price": 189.9, "quantity": 2,
+              "kcal": 220, "protein": 15, "fat": 9.5, "carbs": 20},
+
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && git diff practices/practice_04/vkusvill-collections/app/ practices/practice_04/vkusvill-collections/tests/
+fatal: ambiguous argument 'practices/practice_04/vkusvill-collections/app/': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+
+Вижу, что в diff попали изменения конфигурационных файлов, которые не относятся к Feature A. Покажу только релевантные изменения для Feature A:
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections && git diff -- app/ tests/
+diff --git a/practices/practice_04/vkusvill-collections/app/main.py b/practices/practice_04/vkusvill-collections/app/main.py
+index aa6b6c5..2396737 100644
+--- a/practices/practice_04/vkusvill-collections/app/main.py
++++ b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
+-from app.storage import CollectionStore
++from app.storage import CollectionStore, DuplicateCartUrlError
+ 
+ STATIC_DIR = Path(__file__).parent / "static"
+ DEFAULT_DB = "data/collections.db"
+@@ -24,7 +24,13 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
+ 
+     @api.post("/collections", status_code=status.HTTP_201_CREATED)
+     def create_collection(data: CollectionIn) -> Collection:
+-        return store.create(data)
++        try:
++            return store.create(data)
++        except DuplicateCartUrlError:
++            raise HTTPException(
++                status.HTTP_409_CONFLICT,
++                detail="collection with this cart_url already exists",
++            )
+ 
+     @api.get("/collections")
+     def list_collections(
+@@ -39,7 +45,13 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
+ 
+     @api.put("/collections/{collection_id}")
+     def update_collection(collection_id: int, data: CollectionIn) -> Collection:
+-        return found(store.update(collection_id, data))
++        try:
++            return found(store.update(collection_id, data))
++        except DuplicateCartUrlError:
++            raise HTTPException(
++                status.HTTP_409_CONFLICT,
++                detail="collection with this cart_url already exists",
++            )
+ 
+     @api.delete("/collections/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+     def delete_collection(collection_id: int) -> Response:
+diff --git a/practices/practice_04/vkusvill-collections/app/storage.py b/practices/practice_04/vkusvill-collections/app/storage.py
+index 796a50b..f0c3d09 100644
+--- a/practices/practice_04/vkusvill-collections/app/storage.py
++++ b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -7,6 +7,11 @@ from app.models import CategoryCount, Collection, CollectionIn, Product, Totals
+ 
+ MAX_COLLECTIONS = 100
+ 
++
++class DuplicateCartUrlError(Exception):
++    """Raised when trying to store a collection with a cart_url that already exists."""
++    pass
++
+ SCHEMA = """
+ CREATE TABLE IF NOT EXISTS collections (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+@@ -36,6 +41,13 @@ class CollectionStore:
+     def create(self, data: CollectionIn) -> Collection:
+         created_at = datetime.now(UTC).isoformat(timespec="seconds")
+         with self._connect() as db:
++            # Check for duplicate cart_url
++            existing = db.execute(
++                "SELECT id FROM collections WHERE cart_url = ?", (data.cart_url,)
++            ).fetchone()
++            if existing:
++                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++            
+             cursor = db.execute(
+                 "INSERT INTO collections (title, category, cart_url, products, created_at)"
+                 " VALUES (?, ?, ?, ?, ?)",
+@@ -70,6 +82,14 @@ class CollectionStore:
+ 
+     def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
+         with self._connect() as db:
++            # Check if trying to use another collection's cart_url
++            existing = db.execute(
++                "SELECT id FROM collections WHERE cart_url = ? AND id != ?",
++                (data.cart_url, collection_id),
++            ).fetchone()
++            if existing:
++                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++            
+             cursor = db.execute(
+                 "UPDATE collections SET title = ?, category = ?, cart_url = ?, products = ?"
+                 " WHERE id = ?",
+diff --git a/practices/practice_04/vkusvill-collections/tests/conftest.py b/practices/practice_04/vkusvill-collections/tests/conftest.py
+index 2f92c09..8fcd0d8 100644
+--- a/practices/practice_04/vkusvill-collections/tests/conftest.py
++++ b/practices/practice_04/vkusvill-collections/tests/conftest.py
+@@ -9,11 +9,16 @@ def client(tmp_path):
+     return TestClient(create_app(db_path=tmp_path / "test.db"))
+ 
+ 
++_cart_counter = 0
++
++
+ def make_collection(**overrides) -> dict:
++    global _cart_counter
++    _cart_counter += 1
+     collection = {
+         "title": "Завтрак на двоих",
+         "category": "Завтраки",
+-        "cart_url": "https://vkusvill.ru/cart/share/abc123",
++        "cart_url": f"https://vkusvill.ru/cart/share/unique{_cart_counter}",
+         "products": [
+             {"name": "Сырники", "price": 189.9, "quantity": 2,
+              "kcal": 220, "protein": 15, "fat": 9.5, "carbs": 20},
+
+# Todos
+[✓] Написать падающие тесты для Feature A (no duplicate carts)
+[✓] Запустить тесты и убедиться, что они падают корректно (RED)
+[✓] Добавить проверку дубликатов в storage.py
+[✓] Добавить обработку ошибки дубликата в main.py
+[✓] Запустить все тесты и убедиться, что они проходят (GREEN)
+[✓] Запустить финальную проверку sh scripts/check.sh
+
+## Отчет о реализации Feature A
+
+### Что изменилось
+
+1. **tests/test_feature_a_no_duplicate_carts.py** — новый файл с 7 тестами:
+   - `test_post_duplicate_cart_url_returns_409` — POST с дубликатом возвращает 409
+   - `test_post_duplicate_cart_url_does_not_modify_original` — дубликат не изменяет оригинал
+   - `test_put_to_another_collections_cart_url_returns_409` — PUT с чужим cart_url возвращает 409
+   - `test_put_keeping_own_cart_url_is_allowed` — PUT со своим cart_url разрешен
+   - `test_deleted_cart_url_can_be_reused` — после DELETE cart_url можно использовать снова
+   - `test_evicted_cart_url_can_be_reused` — после вытеснения (100+) cart_url можно использовать снова
+   - `test_cart_urls_are_compared_exactly` — разные cart_url считаются уникальными
+
+2. **app/storage.py** — добавлена проверка дубликатов:
+   - Новое исключение `DuplicateCartUrlError`
+   - В `create()`: проверка перед вставкой
+   - В `update()`: проверка с исключением текущей коллекции (`id != collection_id`)
+
+3. **app/main.py** — обработка исключения дубликата:
+   - Импорт `DuplicateCartUrlError`
+   - В `create_collection()` и `update_collection()`: перехват исключения и возврат 409 с сообщением `"collection with this cart_url already exists"`
+
+4. **tests/conftest.py** — сделал `cart_url` уникальным:
+   - Добавлен счетчик `_cart_counter` для генерации уникальных URL в тестах
+
+### Команды и результаты
+
+**RED phase** — падающие тесты:
+```bash
+$ cd ~/ITMOv2/practices/practice_04/vkusvill-collections
+$ .venv/bin/python -m pytest tests/test_feature_a_no_duplicate_carts.py -v
+```
+```
+FAILED tests/test_feature_a_no_duplicate_carts.py::test_post_duplicate_cart_url_returns_409
+assert 201 == 409  # Ожидали 409, получили 201
+
+FAILED tests/test_feature_a_no_duplicate_carts.py::test_put_to_another_collections_cart_url_returns_409
+assert 200 == 409  # Ожидали 409, получили 200
+
+2 failed, 5 passed in 0.24s
+```
+
+**GREEN phase** — после реализации:
+```bash
+$ .venv/bin/python -m pytest tests/test_feature_a_no_duplicate_carts.py -v
+```
+```
+7 passed in 0.22s
+```
+
+Все тесты проекта:
+```bash
+$ .venv/bin/python -m pytest tests/ -v
+```
+```
+39 passed in 0.67s
+```
+
+**Финальная проверка:**
+```bash
+$ sh scripts/check.sh
+```
+```
+.......................................
+39 passed in 0.68s
+```
+
+### Diff изменений
+
+```diff
+diff --git a/practices/practice_04/vkusvill-collections/app/main.py b/practices/practice_04/vkusvill-collections/app/main.py
+index aa6b6c5..2396737 100644
+--- a/practices/practice_04/vkusvill-collections/app/main.py
++++ b/practices/practice_04/vkusvill-collections/app/main.py
+@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
+ 
+ from app.models import CategoryCount, Collection, CollectionIn, CollectionSummary
+-from app.storage import CollectionStore
++from app.storage import CollectionStore, DuplicateCartUrlError
+ 
+     @api.post("/collections", status_code=status.HTTP_201_CREATED)
+     def create_collection(data: CollectionIn) -> Collection:
+-        return store.create(data)
++        try:
++            return store.create(data)
++        except DuplicateCartUrlError:
++            raise HTTPException(
++                status.HTTP_409_CONFLICT,
++                detail="collection with this cart_url already exists",
++            )
+ 
+     @api.put("/collections/{collection_id}")
+     def update_collection(collection_id: int, data: CollectionIn) -> Collection:
+-        return found(store.update(collection_id, data))
++        try:
++            return found(store.update(collection_id, data))
++        except DuplicateCartUrlError:
++            raise HTTPException(
++                status.HTTP_409_CONFLICT,
++                detail="collection with this cart_url already exists",
++            )
+
+diff --git a/practices/practice_04/vkusvill-collections/app/storage.py b/practices/practice_04/vkusvill-collections/app/storage.py
+index 796a50b..f0c3d09 100644
+--- a/practices/practice_04/vkusvill-collections/app/storage.py
++++ b/practices/practice_04/vkusvill-collections/app/storage.py
+@@ -7,6 +7,11 @@ MAX_COLLECTIONS = 100
+ 
++class DuplicateCartUrlError(Exception):
++    """Raised when trying to store a collection with a cart_url that already exists."""
++    pass
++
+     def create(self, data: CollectionIn) -> Collection:
+         created_at = datetime.now(UTC).isoformat(timespec="seconds")
+         with self._connect() as db:
++            # Check for duplicate cart_url
++            existing = db.execute(
++                "SELECT id FROM collections WHERE cart_url = ?", (data.cart_url,)
++            ).fetchone()
++            if existing:
++                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++            
+             cursor = db.execute(
+                 "INSERT INTO collections (title, category, cart_url, products, created_at)"
+                 " VALUES (?, ?, ?, ?, ?)",
+@@ -70,6 +82,14 @@ class CollectionStore:
+ 
+     def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
+         with self._connect() as db:
++            # Check if trying to use another collection's cart_url
++            existing = db.execute(
++                "SELECT id FROM collections WHERE cart_url = ? AND id != ?",
++                (data.cart_url, collection_id),
++            ).fetchone()
++            if existing:
++                raise DuplicateCartUrlError(f"cart_url {data.cart_url} already exists")
++            
+             cursor = db.execute(
+                 "UPDATE collections SET title = ?, category = ?, cart_url = ?, products = ?"
+                 " WHERE id = ?",
+
+diff --git a/practices/practice_04/vkusvill-collections/tests/conftest.py b/practices/practice_04/vkusvill-collections/tests/conftest.py
+index 2f92c09..8fcd0d8 100644
+--- a/practices/practice_04/vkusvill-collections/tests/conftest.py
++++ b/practices/practice_04/vkusvill-collections/tests/conftest.py
+@@ -9,11 +9,16 @@ def client(tmp_path):
+     return TestClient(create_app(db_path=tmp_path / "test.db"))
+ 
+ 
++_cart_counter = 0
++
++
+ def make_collection(**overrides) -> dict:
++    global _cart_counter
++    _cart_counter += 1
+     collection = {
+         "title": "Завтрак на двоих",
+         "category": "Завтраки",
+-        "cart_url": "https://vkusvill.ru/cart/share/abc123",
++        "cart_url": f"https://vkusvill.ru/cart/share/unique{_cart_counter}",
+         "products": [
+             {"name": "Сырники", "price": 189.9, "quantity": 2,
+              "kcal": 220, "protein": 15, "fat": 9.5, "carbs": 20},
+```
+
+### Ничего не осталось открытым
+
+Все требования Feature A выполнены:
+- ✅ POST с дубликатом cart_url возвращает 409
+- ✅ PUT с чужим cart_url возвращает 409, но свой можно оставить
+- ✅ cart_url сравниваются точно
+- ✅ После DELETE или eviction cart_url можно использовать снова
+- ✅ Все существующие тесты продолжают работать
+- ✅ `sh scripts/check.sh` проходит полностью
+
+Работа готова к вашей приемке. Commit делать не буду без вашего разрешения.

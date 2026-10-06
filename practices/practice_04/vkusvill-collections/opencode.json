@@ -3,12 +3,19 @@
   "model": "vsellm/anthropic/claude-sonnet-4.5",
   "small_model": "vsellm/anthropic/claude-haiku-4.5",
   "default_agent": "build",
-  "enabled_providers": ["vsellm", "ollama"],
+  "enabled_providers": [
+    "vsellm",
+    "ollama"
+  ],
   "provider": {
     "vsellm": {
       "models": {
-        "anthropic/claude-sonnet-4.5": { "name": "Claude Sonnet 4.5 (VseLLM)" },
-        "anthropic/claude-haiku-4.5": { "name": "Claude Haiku 4.5 (VseLLM)" }
+        "anthropic/claude-sonnet-4.5": {
+          "name": "Claude Sonnet 4.5 (VseLLM)"
+        },
+        "anthropic/claude-haiku-4.5": {
+          "name": "Claude Haiku 4.5 (VseLLM)"
+        }
       }
     }
   },
@@ -17,6 +24,18 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "enabled": true
+    },
+    "collections": {
+      "type": "local",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "mcp_server.server"
+      ],
+      "enabled": true,
+      "environment": {
+        "COLLECTIONS_API_URL": "http://127.0.0.1:8010"
+      }
     }
   }
 }

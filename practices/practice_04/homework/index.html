@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ДЗ 4 — агентная среда</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --herb: #2F6B3A; --herb-deep: #1F4A28; --herb-soft: #DCE8D6; --ink: #18241C; --muted: #56645A;
+    --sage: #E7EDE2; --card: #FFFFFF; --paper: #FFFEFA; --label: #FFD84D; --line: #D2DBCD; --warn: #A3271B;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: "Onest", system-ui, sans-serif; color: var(--ink); background: var(--sage);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; line-height: 1.55; }
+  a { color: var(--herb); }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 56px 0 24px; }
+  h1 { font-size: clamp(2.6rem, 7vw, 5.2rem); font-weight: 900; line-height: 0.95; letter-spacing: -0.04em; margin: 0; color: var(--herb-deep); }
+  .lead { font-size: 1.15rem; color: var(--muted); max-width: 62ch; margin: 20px 0 0; }
+  .score { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; padding: 0; list-style: none; }
+  .score li { background: var(--card); border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 14px; font-weight: 500; }
+  .score b { background: var(--label); border-radius: 3px; padding: 0 6px; margin-left: 6px; }
+  section { background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 28px; margin: 22px 0; }
+  section > h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin: 0 0 6px; font-size: 1.7rem; letter-spacing: -0.02em; }
+  .pts { font-size: 1rem; background: var(--label); padding: 2px 10px; border-radius: 3px; white-space: nowrap; }
+  h3 { margin: 22px 0 6px; font-size: 1.1rem; }
+  p { margin: 8px 0; max-width: 75ch; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.95rem; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 10px 9px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: 0.85rem; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--sage); padding: 1px 5px; border-radius: 4px; }
+  pre { font-family: var(--mono); font-size: 0.82rem; line-height: 1.5; background: var(--paper); border: 1.5px dashed #B9C2B4; border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; }
+  .ok { color: var(--herb); font-weight: 700; }
+  .bad { color: var(--warn); font-weight: 700; }
+  .note { border-left: 4px solid var(--label); padding: 4px 0 4px 14px; margin: 14px 0; }
+  .who { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 14px 0 0; }
+  .who div { background: var(--sage); border-radius: 10px; padding: 12px 14px; }
+  .who strong { display: block; }
+  img { max-width: 100%; border-radius: 10px; border: 1.5px solid var(--line); }
+  footer { color: var(--muted); padding: 8px 0 56px; font-size: 0.9rem; }
+  @media (max-width: 560px) { section { padding: 20px 16px; } .wrap { padding: 0 16px; } td:first-child { white-space: normal; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ДЗ 4:<br>агентная среда</h1>
+  <p class="lead">Проект — <a href="../vkusvill-collections/">VkusVill Collections</a>: публичный дашборд подборок продуктов и CRUD API (FastAPI + SQLite). Агент собирает подборку через MCP ВкусВилла и сохраняет её в сервис только после явного «да» оператора.</p>
+  <ul class="score">
+    <li>А. Среда<b>5</b></li><li>Б. Свой skill<b>2</b></li><li>В. Свой MCP<b>2</b></li><li>Г. Рефлексия<b>1</b></li>
+  </ul>
+  <div class="who">
+    <div><strong>OpenCode-агент (Claude Sonnet 4.5 через VseLLM)</strong>Этапы 2–5 практики: чтение правил, skill, Context7, фичи A и B через TDD, проверка hook. Логи — <code>evidence/agent-*.txt</code>.</div>
+    <div><strong>Claude Code (по моему поручению)</strong>Каркас проекта, контракт, дашборд, AGENTS.md и hook; ревью A и B. Код ДЗ — MCP-сервер и skill <code>collection-approval</code>, потому что 5 октября у ключа VseLLM кончился бюджет (HTTP 402).</div>
+    <div><strong>Я</strong>ТЗ (из практики), выбор стека и объёма, решения по ходу (в т.ч. кто пишет код ДЗ), «да» оператора при реальном запуске skill.</div>
+  </div>
+</header>
+
+<section id="a">
+  <h2>А. Настроенная среда <span class="pts">5 баллов</span></h2>
+  <p>Каждое подключение показано в работе, а не только в конфиге.</p>
+  <table>
+    <tr><th>Что</th><th>Где</th><th>Применение (подтверждение)</th></tr>
+    <tr><td>AGENTS.md</td><td><code>vkusvill-collections/AGENTS.md</code></td><td>Агент сам нашёл контракт, тест-пример, ограничения фичи A и команду <code>sh scripts/check.sh</code> — <a href="evidence/agent-2.1-rules.txt">лог 2.1</a>. Style guide связан с AGENTS.md; агент назвал правило 3 и точные строки кода, плюс заранее указал, где фича B его нарушит — <a href="evidence/agent-4.1-style.txt">лог 4.1</a>.</td></tr>
+    <tr><td>Skill</td><td><code>.opencode/skills/</code></td><td>Агент вызвал <code>Skill "test-driven-development"</code> и прочитал <code>writing-good-tests.md</code> (<a href="evidence/agent-2.3-skill.txt">лог 2.3</a>), затем по нему сделал A: сначала 2 падающих теста (201/200 вместо 409), потом исправление — <a href="evidence/agent-3-featureA.txt">лог 3</a>.</td></tr>
+    <tr><td>MCP</td><td><code>opencode.json</code> → <code>context7</code>, <code>collections</code></td><td>Реальные <code>context7_resolve-library-id</code> и два <code>context7_query-docs</code> вернули документацию FastAPI про 409 и exception handler — <a href="evidence/agent-2.5-mcp.txt">лог 2.5</a>. Этот же приём (один handler) агент применил в A. <code>opencode mcp list</code>: оба сервера <span class="ok">connected</span>.</td></tr>
+    <tr><td>Hook</td><td><code>.opencode/plugins/check-after-edit.js</code></td><td>После каждой правки агента запускается <code>check.sh</code>, результат дописывается в ответ инструмента. Временный тест: <code>write</code> → <span class="bad">FAIL (exit 1)</span>, <code>edit</code> → <span class="ok">PASS (exit 0)</span> — <a href="evidence/agent-4.2-hook.txt">лог 4.2</a>, <a href="evidence/hook-events.jsonl">журнал событий</a>.</td></tr>
+  </table>
+
+  <h3>Обоснование подключений</h3>
+  <table>
+    <tr><th>Подключение</th><th>Зачем именно этому проекту</th></tr>
+    <tr><td>Context7</td><td>FastAPI и Pydantic быстро меняют API (в проекте Python 3.14, Pydantic 2). Ответы «по памяти» модели устаревают; Context7 даёт доку нужной версии. Для задач без библиотек не нужен.</td></tr>
+    <tr><td>collections (свой)</td><td>Единственный канал записи в сервис для агента. Проверка «одобрено оператором» и понятные ошибки сидят в инструменте, а не в надежде на промпт.</td></tr>
+    <tr><td>test-driven-development</td><td>У сервиса есть контракт; падающий тест — доказательство, что агент понял требование, а не просто «написал код».</td></tr>
+    <tr><td>frontend-design</td><td>Дашборд публичный. Skill задал процесс: план токенов → проверка на шаблонность → самокритика по скриншоту.</td></tr>
+    <tr><td>webapp-testing</td><td>Подключён для проверки дашборда в браузере. <b>Не запускался</b>: Playwright не установлен, проверку UI сделал через встроенный браузер. Честно: пока лишний.</td></tr>
+    <tr><td>Hook</td><td>Агенты пишут «тесты прошли», не запуская их. Hook превращает это в факт после каждой правки и не даёт агенту не заметить FAIL.</td></tr>
+    <tr><td>tester (субагент)</td><td>Ревью отдельным исполнителем без прав на запись: только <code>check.sh</code>, pytest и <code>git diff -- .</code>.</td></tr>
+    <tr><td>Не подключал</td><td>MCP ВкусВилла — нет доступа (у ведущего это локальный адаптер с OAuth). GitHub/Playwright MCP — задачам практики не нужны; число подключений баллов не добавляет.</td></tr>
+  </table>
+</section>
+
+<section id="b">
+  <h2>Б. Свой skill: <code>collection-approval</code> <span class="pts">2 балла</span></h2>
+  <h3>Устройство и автоматизация</h3>
+  <p>Ключевой сценарий из ТЗ — «агент сохраняет подборку только после явного апрува» — оформлен как процедура из 5 шагов с жёсткими правилами: одно «да» — одна подборка; правка обнуляет одобрение; данные не «чинятся» ради валидации. Файлы: <a href="../vkusvill-collections/.opencode/skills/collection-approval/SKILL.md"><code>SKILL.md</code></a>, <code>scripts/preview.py</code>, <code>examples/dinner.json</code>.</p>
+  <p><code>preview.py</code> переиспользует модели сервиса (<code>app/models.py</code>) — валидация ровно та же, что у API, без копии правил. Он проверяет дубликат по живому API и печатает чек для оператора. Коды выхода управляют следующим шагом: <code>0</code> — спросить оператора, <code>1</code> — невалидно, не показывать, <code>2</code> — уже сохранена. Покрыт 4 тестами (<code>tests/test_skill_preview.py</code>).</p>
+  <h3>Реальный запуск и проверенный результат</h3>
+  <p>Полный проход на живом сервисе — <a href="evidence/skill-run.txt">evidence/skill-run.txt</a>:</p>
+<pre>$ preview.py data/pending/pasta.json
+Подборка: Паста за 20 минут
+  Спагетти................... 1 × 129,00 ₽ = 129,00 ₽
+  Томаты в собственном соку.. 1 × 159,00 ₽ = 159,00 ₽
+  Пармезан 150 г............. 1 × 399,00 ₽ = 399,00 ₽
+Итого: 687,00 ₽
+Сохранить эту подборку на дашборд? Ответьте «да» или опишите правки.   exit 0
+
+# оператор ответил «да» → save_collection(operator_approved=true) → id 12
+
+$ preview.py data/pending/pasta.json        # повторно
+Эта корзина уже сохранена: подборка №12 «Паста за 20 минут».           exit 2</pre>
+  <p>Испорченные данные (отрицательная цена, ссылка без https) — <code>exit 1</code> с путями полей, до оператора не доходят. Первый запуск при выключенном сервисе дал предупреждение «не удалось проверить дубликаты» — сценарий из SKILL.md отработал как задуман.</p>
+  <img src="evidence/dashboard-after-save.jpg" alt="Дашборд после сохранения: чек подборки №12 «Паста за 20 минут», 687 ₽, категория Ужины — 5">
+</section>
+
+<section id="c">
+  <h2>В. Свой MCP: <code>collections</code> <span class="pts">2 балла</span></h2>
+  <h3>Полезный tool</h3>
+  <p><a href="../vkusvill-collections/mcp_server/server.py"><code>mcp_server/server.py</code></a> (MCP Python SDK 2.3, stdio). <code>save_collection</code> сохраняет подборку в сервис через его HTTP API — API остаётся единственным местом валидации. Без <code>operator_approved=true</code> отказывает сам. Ошибки HTTP переводит в понятные агенту сообщения: 409, 422 (с путями полей), 503, недоступность и таймаут. Второй tool, <code>list_collections</code>, — проверка уже сохранённого.</p>
+  <h3>Вызов и результат, включая ошибочный вход</h3>
+  <p>Реальные вызовы по stdio в отдельном процессе — так же, как запускает OpenCode — против живого сервиса: <a href="evidence/mcp-stdio-calls.txt">evidence/mcp-stdio-calls.txt</a>.</p>
+  <table>
+    <tr><th>Вызов</th><th>Результат</th></tr>
+    <tr><td>одобренная, валидная</td><td><span class="ok">is_error: false</span> → <code>{"id": 1, "total_price": 288.0, …}</code></td></tr>
+    <tr><td>та же корзина повторно</td><td><span class="bad">is_error: true</span> — collection with this cart_url already exists</td></tr>
+    <tr><td>ошибочный вход</td><td><span class="bad">is_error: true</span> — <code>cart_url: … must be an https link on vkusvill.ru; products.0.price: … ≥ 0</code></td></tr>
+    <tr><td>без одобрения</td><td><span class="bad">is_error: true</span> — the operator has not approved this collection; в сервис запрос не ушёл</td></tr>
+    <tr><td>сервис выключен</td><td><span class="bad">is_error: true</span> — not reachable at …, подсказка как запустить; без traceback</td></tr>
+  </table>
+  <p>Плюс 7 тестов через настоящий MCP-протокол (in-process клиент SDK) — <code>tests/test_mcp_server.py</code>. Все проверки проекта: <code>sh scripts/check.sh</code> → <span class="ok">63 passed</span>.</p>
+</section>
+
+<section id="d">
+  <h2>Г. Рефлексия <span class="pts">1 балл</span></h2>
+  <p><a href="reflection.md">reflection.md</a> — конкретные наблюдения: где агент помог, где ошибся и где пришлось вмешаться.</p>
+  <div class="note">Самое неожиданное: агент запустил <code>git diff</code> по всему репозиторию и вывел API-ключ из корневого <code>opencode.json</code> — хотя AGENTS.md запрещал его читать. Запрет на <em>чтение файла</em> не покрывает <em>команду, которая его покажет</em>. Ключ вычищен из логов, правило и права <code>tester</code> сужены до <code>git diff -- .</code>.</div>
+</section>
+
+<footer>Как проверить: <code>cd practices/practice_04/vkusvill-collections &amp;&amp; sh scripts/check.sh</code> · запуск дашборда: <code>.venv/bin/uvicorn app.main:create_app --factory --port 8010</code> · демо MCP: <code>.venv/bin/python scripts/mcp_demo.py</code></footer>
+</div>
+</body>
+</html>

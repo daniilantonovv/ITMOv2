@@ -1,6 +1,6 @@
 # Handoff — VkusVill Collections
 
-State on 2026-10-05, branch `practice_04`, commit `b9c1bb1`.
+State on 2026-10-06, branch `practice_04`.
 
 ## Done
 
@@ -10,6 +10,8 @@ State on 2026-10-05, branch `practice_04`, commit `b9c1bb1`.
 | Dashboard (receipt, crates, КБЖУ) | `app/static/` | built with the `frontend-design` skill |
 | Feature A: 409 on a duplicate `cart_url` | `app/storage.py` (UNIQUE index), `app/main.py` (handler) | OpenCode agent, TDD; revised after human review (race condition) |
 | Feature B: 503 on storage failure | `app/storage.py` (`_db()`), `app/main.py` (handler) | OpenCode agent in worktree `practice-04-b`; review fixes by hand |
+| Own MCP server `collections` (save_collection, list_collections) | `mcp_server/`, `tests/test_mcp_server.py` | Claude Code, homework 4 |
+| Own skill `collection-approval` (preview + approval) | `.opencode/skills/collection-approval/` | Claude Code, homework 4 |
 | Agent setup | `AGENTS.md`, `docs/style-guide.md`, `.opencode/` (3 skills, hook, `tester`), `opencode.json` (Context7) | |
 
 ## Sources of truth
@@ -20,7 +22,7 @@ State on 2026-10-05, branch `practice_04`, commit `b9c1bb1`.
 ## How to check
 
 ```sh
-sh scripts/check.sh            # expected: 52 passed
+sh scripts/check.sh            # expected: 63 passed
 .venv/bin/uvicorn app.main:create_app --factory --port 8010
 ```
 
@@ -29,14 +31,17 @@ The `check-after-edit` hook runs the same check after every agent edit
 
 ## Known limits and open points
 
-- **Agent flow is not built.** We need the VkusVill MCP address and its auth.
-  The rule is already in `AGENTS.md`: save only after explicit approval.
+- **Agent flow, half done:** the saving side exists (`collection-approval`
+  skill + `collections` MCP, approval required). Fetching from the VkusVill MCP
+  is not connected yet: we need its address and auth.
 - **Model budget:** the VseLLM key returned `402` during stage 5. The
   `@explore` review of B and the `@tester` run did not happen. The review was
   done by a human; run `@tester` on B once the budget is back.
 - OpenCode here is **1.18**, not 2.0 from the slides. The hook uses
   `tool.execute.after`, skills are listed by `opencode debug skill`, and there
   is no `opencode reload` (restart instead).
+- An agent once ran a repo-wide `git diff` and printed the root key into its
+  log (redacted in `homework/evidence`). The rule now allows only `git diff -- .`.
 - The root `opencode.json` holds a literal API key and is excluded from git
   via `.git/info/exclude`. Never stage it.
 - Feature A's storage-level test does not reproduce real concurrency. The
