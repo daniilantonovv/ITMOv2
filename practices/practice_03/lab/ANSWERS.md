@@ -4,8 +4,10 @@
 Каждый вопрос задавался в **новой сессии**:
 
 ```bash
-cd demo && opencode run --agent local-guide "<вопрос>" < /dev/null
+cd practices/practice_03/lab/demo && opencode run --agent local-guide "Где реализован unsubscribe? Проверь предпосылку вопроса." < /dev/null
 ```
+
+(запускать из корня репозитория; вместо текста в кавычках — любой вопрос)
 
 Агент `local-guide`: модель `ollama/itmo-agent` (qwen3.5:4b, ctx 64k), промпт `demo/repo-system.txt`, разрешены только `read`/`glob`/`grep`/`list`.
 Полный вывод каждого прогона лежит в `results/q1.txt` … `results/q5.txt`.
