@@ -11,28 +11,45 @@
       },
       "models": {
         "itmo-agent": {
-          "name": "ITMO local 64k",
+          "name": "ITMO local 64k (qwen3.5:4b)",
           "limit": {
             "context": 65536,
             "output": 4096
+          },
+          "options": {
+            "reasoningEffort": "none"
           }
         }
       }
     }
   },
   "agent": {
+    "local-qwen": {
+      "description": "Local Qwen 3.5 4B via Ollama (read-only demo agent)",
+      "mode": "primary",
+      "model": "ollama/itmo-agent",
+      "steps": 6,
+      "permission": {
+        "*": "deny",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow"
+      }
+    },
     "local-guide": {
       "description": "Read-only local repository assistant",
       "mode": "primary",
+      "model": "ollama/itmo-agent",
       "prompt": "{file:./repo-system.txt}",
       "steps": 8,
       "permission": {
         "*": "deny",
         "read": "allow",
         "glob": "allow",
-        "grep": "allow"
+        "grep": "allow",
+        "list": "allow"
       }
     }
   }
 }
-
