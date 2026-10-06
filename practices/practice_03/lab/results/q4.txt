@@ -1,0 +1,5 @@
+
+> local-guide · itmo-agent
+
+✱ Grep "ci|github|gitlab|bitbucket|jenkins|travis|circleci" in . · 0 matches
+Сведений о CI-системе в проекте нет.

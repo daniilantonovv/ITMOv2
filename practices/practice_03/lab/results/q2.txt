@@ -1,0 +1,17 @@
+
+> local-guide · itmo-agent
+
+✱ Glob "**/*.{js,ts,py,cpp,c,h}" in . · 2 matches
+→ Read test_service.py
+→ Read service.py
+При пустом имени подписчика (например, `" "` или `""`) будет抛出 ошибка.
+
+**Подтверждение кодом:**
+
+В файле `service.py` (строка 5-6):
+```python
+if not name.strip():
+    raise ValueError("empty name")
+```
+
+Функция `subscribe()` проверяет имя подписчика через `.strip()`. Если после удаления пробелов имя становится пустой строкой, вызывается ошибку `ValueError` с сообщением "empty name".

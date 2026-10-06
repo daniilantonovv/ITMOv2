@@ -1,0 +1,16 @@
+
+> local-guide · itmo-agent
+
+✱ Glob "**/*test*.py" in . · 1 match
+→ Read test_service.py
+Запустить тесты можно по команде в файл `test_service.py`:
+
+**Команда для запуска:**
+```bash
+python test_service.py
+```
+
+Или с выводом результатов в файл:
+```bash
+python -m unittest test_service.py
+```
