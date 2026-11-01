@@ -1,0 +1,13 @@
+test_headers_and_body_share_the_same_request_deadline (test_availability.ActiveSlowRequestTest.test_headers_and_body_share_the_same_request_deadline) ... ok
+test_trickled_body_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_body_cannot_extend_absolute_deadline) ... ok
+test_trickled_headers_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_headers_cannot_extend_absolute_deadline) ... ok
+test_trickled_request_line_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_request_line_cannot_extend_absolute_deadline) ... ok
+test_direct_dispatch_rejects_unicode_before_storage (test_availability.UnicodeAvailabilityTest.test_direct_dispatch_rejects_unicode_before_storage) ... ok
+test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) ... ok
+test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) ... ok
+test_valid_non_bmp_review_is_preserved (test_availability.UnicodeAvailabilityTest.test_valid_non_bmp_review_is_preserved) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 6.280s
+
+OK

@@ -1,6 +1,6 @@
 # Mini Shop — модель угроз
 
-Дата: 2026-11-01. Область: только свой процесс на 127.0.0.1 и синтетические данные. Базовый исходник: upstream `0c8a9c1567e334a00502a2d83bd3d9997b2b2687`. Итоговый источник проверяется по SHA-256 в evidence/after/attacks.json.
+Дата: 2026-11-01. Область: только свой процесс на 127.0.0.1 и синтетические данные. Базовый исходник: upstream `0c8a9c1567e334a00502a2d83bd3d9997b2b2687`. Итоговый источник проверяется по SHA-256 в evidence/availability-after/attacks.json.
 
 ## Активы, роли и границы
 
@@ -44,7 +44,14 @@ flowchart LR
 | V09 | Elevation/destruction: export_profiles/delete_tree/read_file от LLM | Critical в пределах стенда | Executor требует сессию, допускает только собственный чек/refuse; destructive/admin tools запрещены даже staff |
 | V10 | Disclosure/availability: tracebacks, malformed JSON/types | Medium | Проверки схем/типов/дубликатов/NaN; 400; скрытые внутренние исключения |
 | V11 | DoS: бесконечные logs/sessions/reviews/orders, перебор | Medium | TTL 1ч, до 1000 сессий/заказов, 100 отзывов, 200 логов; 5 ошибочных входов/60с на учебную учётку |
-| V12 | HTTP ambiguity / browser access / connection exhaustion | Medium | 64 KiB, запрет duplicate Content-Length/TE, JSON content type, loopback Host, Origin deny, timeout 3с, 16 worker threads |
+| V12 | HTTP ambiguity / browser access / connection exhaustion | Medium | 64 KiB, запрет duplicate Content-Length/TE, JSON content type, loopback Host, Origin deny, inactivity timeout 3с, 16 worker threads; общий deadline см. V14 |
+
+Дополнение по результатам ревью:
+
+| ID | Класс / угроза | Приоритет | Проверка и защита |
+|---|---|---|---|
+| V13 | DoS: сохранённый непарный суррогат ломает HTML и AI-контекст | Medium | Строгая UTF-8 проверка до хранения; сериализация до заголовков внутри exception handler |
+| V14 | DoS: активный slow client удерживает worker, обходя inactivity timeout | Medium | Один monotonic deadline для request line/headers/body, lock и response; регрессия освобождения worker |
 
 ## Критерии проверки
 

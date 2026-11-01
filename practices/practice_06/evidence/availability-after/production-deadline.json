@@ -1,0 +1,26 @@
+{
+  "service_sha256": "d64650a23c51c5d59aa848c71f053b1ceb453c2d823eb21ed44dddec929c6a2a",
+  "unicode_review": {
+    "post_status": 400,
+    "reviews": {
+      "status": 200
+    },
+    "assistant": {
+      "status": 200
+    },
+    "stored_reviews": 0
+  },
+  "trickle": [
+    {
+      "stage": "body",
+      "configured_deadline": 3.0,
+      "byte_interval": 0.8,
+      "client_observed_seconds": 3.004,
+      "server_closed": true,
+      "response_status_line": "HTTP/1.0 408 Request Timeout",
+      "bytes_trickled": 3,
+      "initial_health": 503,
+      "health_after_deadline": 200
+    }
+  ]
+}

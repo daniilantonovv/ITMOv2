@@ -2,11 +2,11 @@
 
 - Модель угроз и границы доверия: `practices/practice_06/THREAT_MODEL.md`.
 - До исправлений: `REPORT_01.md`, реальные HTTP-ответы и failing security regressions в `evidence/before/`.
-- После исправлений: `REPORT_02.md`, повтор тех же атак, квоты/timeout/workers, HTTP-регрессии и evidence.
+- После исправлений: `REPORT_02.md`, повтор тех же атак, квоты/deadline/workers, HTTP-регрессии и evidence. Дополнительные V13/V14: непарные Unicode-суррогаты отклоняются до хранения, ответы кодируются до заголовков с безопасным fallback, активный slow client ограничен единым абсолютным deadline. Red/green и измерения: `evidence/availability-before/`, `evidence/availability-after/`.
 - Кастомный judge prompt: `judge-system-prompt.md`; дополнительное реальное LLM-ревью сохраняется в `evidence/judge/`.
 - `sandbox.py` и исходные функциональные тесты не изменены; процесс остаётся loopback-only, stdlib-only, без shell/внешней отправки данных.
 
-Проверки: `make step6` — 40 tests, OK; `make test` — exit 0. Скрипты `attacks.py` и `evaluate_model.py` позволяют воспроизвести HTTP-атаки и отдельные tool-free OpenCode/Ollama-сессии.
+Проверки: `make step6` — 48 tests, OK; `make test` — exit 0. Скрипты `attacks.py` и `evaluate_model.py` позволяют воспроизвести HTTP-атаки и отдельные tool-free OpenCode/Ollama-сессии.
 
 Выводы: опасное решение AI должно проходить обычную серверную авторизацию. В реальном baseline модель выбрала экспорт даже для запроса чека, а исходный сервер разрешил его. Отравленный отзыв не привёл к доказанному удалению моделью; успешную prompt injection мы не выдумываем. Принудительная проверка delete_tree — отдельный тест исполнителя: после фикса 403, чек сохранён.
 

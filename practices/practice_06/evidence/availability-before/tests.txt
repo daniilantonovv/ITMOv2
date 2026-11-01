@@ -1,0 +1,398 @@
+test_trickled_body_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_body_cannot_extend_absolute_deadline) ... FAIL
+test_trickled_headers_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_headers_cannot_extend_absolute_deadline) ... FAIL
+test_trickled_request_line_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_request_line_cannot_extend_absolute_deadline) ... FAIL
+test_direct_dispatch_rejects_unicode_before_storage (test_availability.UnicodeAvailabilityTest.test_direct_dispatch_rejects_unicode_before_storage) ... FAIL
+test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) ... ----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60387)
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/service.py", line 337, in handle_request
+    data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
+UnicodeEncodeError: 'utf-8' codec can't encode character '\ud800' in position 0: surrogates not allowed
+----------------------------------------
+
+  test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="'\\ud800'") ... ERROR
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60388)
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/service.py", line 337, in handle_request
+    data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
+UnicodeEncodeError: 'utf-8' codec can't encode character '\udfff' in position 16: surrogates not allowed
+----------------------------------------
+  test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="{'unexpected': '\\udfff'}") ... ERROR
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60389)
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/service.py", line 337, in handle_request
+    data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
+                                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py", line 242, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/encoder.py", line 202, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/encoder.py", line 263, in iterencode
+    return _iterencode(o, 0)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/encoder.py", line 182, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type set is not JSON serializable
+when serializing dict item 'unexpected'
+----------------------------------------
+  test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="{'unexpected': {1, 2}}") ... ERROR
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60390)
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/service.py", line 337, in handle_request
+    data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
+                                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py", line 242, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/encoder.py", line 202, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/encoder.py", line 263, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing dict item 'unexpected'
+----------------------------------------
+  test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="{'unexpected': nan}") ... ERROR
+test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) ...
+  test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) (review="'\\ud800'") ... FAIL
+  test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) (review="'\\udfff'") ... FAIL
+  test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) (review="'prefix\\ud800suffix'") ... FAIL
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60397)
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/service.py", line 337, in handle_request
+    data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
+UnicodeEncodeError: 'utf-8' codec can't encode character '\ud800' in position 15: surrogates not allowed
+----------------------------------------
+test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) ... ERROR
+test_valid_non_bmp_review_is_preserved (test_availability.UnicodeAvailabilityTest.test_valid_non_bmp_review_is_preserved) ... ok
+
+======================================================================
+ERROR: test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="'\\ud800'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 48, in test_serialization_failures_return_safe_json_before_headers_are_sent
+    status, body = self.local.call("GET", "/health")
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/attacks.py", line 40, in call
+    response = urlopen(request, timeout=5)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 487, in open
+    response = self._open(req, data)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 504, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1350, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1325, in do_open
+    r = h.getresponse()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1450, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+                             " response")
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+======================================================================
+ERROR: test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="{'unexpected': '\\udfff'}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 48, in test_serialization_failures_return_safe_json_before_headers_are_sent
+    status, body = self.local.call("GET", "/health")
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/attacks.py", line 40, in call
+    response = urlopen(request, timeout=5)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 487, in open
+    response = self._open(req, data)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 504, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1350, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1325, in do_open
+    r = h.getresponse()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1450, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+                             " response")
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+======================================================================
+ERROR: test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="{'unexpected': {1, 2}}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 48, in test_serialization_failures_return_safe_json_before_headers_are_sent
+    status, body = self.local.call("GET", "/health")
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/attacks.py", line 40, in call
+    response = urlopen(request, timeout=5)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 487, in open
+    response = self._open(req, data)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 504, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1350, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1325, in do_open
+    r = h.getresponse()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1450, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+                             " response")
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+======================================================================
+ERROR: test_serialization_failures_return_safe_json_before_headers_are_sent (test_availability.UnicodeAvailabilityTest.test_serialization_failures_return_safe_json_before_headers_are_sent) (result="{'unexpected': nan}")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 48, in test_serialization_failures_return_safe_json_before_headers_are_sent
+    status, body = self.local.call("GET", "/health")
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/attacks.py", line 40, in call
+    response = urlopen(request, timeout=5)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 487, in open
+    response = self._open(req, data)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 504, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1350, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1325, in do_open
+    r = h.getresponse()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1450, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+                             " response")
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+======================================================================
+ERROR: test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 23, in test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints
+    self.assertEqual(self.local.call("GET", "/reviews/view")[0], 200)
+                     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/attacks.py", line 40, in call
+    response = urlopen(request, timeout=5)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 487, in open
+    response = self._open(req, data)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 504, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1350, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1325, in do_open
+    r = h.getresponse()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 1450, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py", line 305, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+                             " response")
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+======================================================================
+FAIL: test_trickled_body_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_body_cannot_extend_absolute_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 71, in test_trickled_body_cannot_extend_absolute_deadline
+    self.assert_deadline("body")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 58, in assert_deadline
+    self.assertTrue(result["server_closed"], result)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {'stage': 'body', 'configured_deadline': 0.4, 'byte_interval': 0.08, 'client_observed_seconds': 1.716, 'server_closed': False, 'response_status_line': '', 'bytes_trickled': 15, 'initial_health': 503, 'health_after_deadline': 503}
+
+======================================================================
+FAIL: test_trickled_headers_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_headers_cannot_extend_absolute_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 68, in test_trickled_headers_cannot_extend_absolute_deadline
+    self.assert_deadline("headers")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 58, in assert_deadline
+    self.assertTrue(result["server_closed"], result)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {'stage': 'headers', 'configured_deadline': 0.4, 'byte_interval': 0.08, 'client_observed_seconds': 1.702, 'server_closed': False, 'response_status_line': '', 'bytes_trickled': 15, 'initial_health': 503, 'health_after_deadline': 503}
+
+======================================================================
+FAIL: test_trickled_request_line_cannot_extend_absolute_deadline (test_availability.ActiveSlowRequestTest.test_trickled_request_line_cannot_extend_absolute_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 65, in test_trickled_request_line_cannot_extend_absolute_deadline
+    self.assert_deadline("request_line")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 58, in assert_deadline
+    self.assertTrue(result["server_closed"], result)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {'stage': 'request_line', 'configured_deadline': 0.4, 'byte_interval': 0.08, 'client_observed_seconds': 1.702, 'server_closed': False, 'response_status_line': '', 'bytes_trickled': 15, 'initial_health': 503, 'health_after_deadline': 503}
+
+======================================================================
+FAIL: test_direct_dispatch_rejects_unicode_before_storage (test_availability.UnicodeAvailabilityTest.test_direct_dispatch_rejects_unicode_before_storage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 31, in test_direct_dispatch_rejects_unicode_before_storage
+    self.assertEqual(status, 400)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 201 != 400
+
+======================================================================
+FAIL: test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) (review="'\\ud800'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 22, in test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints
+    self.assertEqual(status, 400)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 201 != 400
+
+======================================================================
+FAIL: test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) (review="'\\udfff'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 22, in test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints
+    self.assertEqual(status, 400)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 201 != 400
+
+======================================================================
+FAIL: test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints (test_availability.UnicodeAvailabilityTest.test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints) (review="'prefix\\ud800suffix'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/itmo-homework-6-security/practices/practice_06/lab/test_availability.py", line 22, in test_unpaired_surrogates_are_rejected_without_poisoning_read_endpoints
+    self.assertEqual(status, 400)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 201 != 400
+
+----------------------------------------------------------------------
+Ran 7 tests in 9.095s
+
+FAILED (failures=7, errors=5)

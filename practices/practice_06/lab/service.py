@@ -2,6 +2,7 @@
 
 import argparse
 import html
+import io
 import json
 import secrets
 import sqlite3
@@ -18,6 +19,9 @@ MAX_SESSIONS = 1000
 MAX_ORDERS = 1000
 MAX_REVIEWS = 100
 MAX_LOGS = 200
+SOCKET_TIMEOUT = 3.0
+REQUEST_TIMEOUT = 3.0
+TIMEOUT_RESPONSE_GRACE = 0.2
 
 
 def positive_id(value):
@@ -32,6 +36,9 @@ def positive_id(value):
 def text(value, maximum):
     if not isinstance(value, str) or not value.strip() or len(value) > maximum:
         raise ValueError("invalid text")
+    # JSON escapes can produce lone surrogates even when the wire is valid
+    # UTF-8. Reject them at the domain boundary before retaining any text.
+    value.encode("utf-8")
     return value
 
 
@@ -275,14 +282,39 @@ class ShopHTTPServer(ThreadingHTTPServer):
             self.worker_slots.release()
 
 
+def remaining_timeout(deadline):
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("request deadline exceeded")
+    return min(SOCKET_TIMEOUT, remaining)
+
+
+class RequestReader(io.RawIOBase):
+    """Recompute the absolute budget for every recv, including buffered reads."""
+
+    def __init__(self, connection, deadline):
+        self.connection = connection
+        self.deadline = deadline
+
+    def readable(self):
+        return True
+
+    def readinto(self, buffer):
+        self.connection.settimeout(remaining_timeout(self.deadline))
+        return self.connection.recv_into(buffer)
+
+
 def make_handler(shop):
     class Handler(BaseHTTPRequestHandler):
         server_version = "MiniShop"
         sys_version = ""
 
         def setup(self):
+            self.request_deadline = time.monotonic() + REQUEST_TIMEOUT
             super().setup()
-            self.connection.settimeout(3)
+            self.connection.settimeout(remaining_timeout(self.request_deadline))
+            self.rfile.close()
+            self.rfile = io.BufferedReader(RequestReader(self.connection, self.request_deadline))
 
         def request_data(self):
             hosts = self.headers.get_all("Host", [])
@@ -322,19 +354,28 @@ def make_handler(shop):
                     raise ValueError
             except (ValueError, UnicodeError, RecursionError):
                 return 400, {"error": "invalid JSON object"}
-            with shop.lock:
-                return shop.dispatch(self.command, self.path, body, self.headers)
+            if not shop.lock.acquire(timeout=remaining_timeout(self.request_deadline)):
+                raise TimeoutError("request deadline exceeded")
+            try:
+                remaining_timeout(self.request_deadline)
+                result = shop.dispatch(self.command, self.path, body, self.headers)
+                remaining_timeout(self.request_deadline)
+                return result
+            finally:
+                shop.lock.release()
 
         def handle_request(self):
             self.close_connection = True
             try:
                 status, result = self.request_data()
+                is_html = isinstance(result, str)
+                data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
             except TimeoutError:
-                status, result = 408, {"error": "request timeout"}
+                status, data, is_html = 408, b'{"error": "request timeout"}', False
             except Exception:
-                status, result = 500, {"error": "internal error"}
-            is_html = isinstance(result, str)
-            data = (result if is_html else json.dumps(result, ensure_ascii=False, allow_nan=False)).encode("utf-8")
+                # Encode before sending headers. A corrupt application result
+                # must still yield a complete, constant and safe JSON error.
+                status, data, is_html = 500, b'{"error": "internal error"}', False
             self.send_response(status)
             self.send_header("Content-Type", "text/html; charset=utf-8" if is_html else "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
@@ -342,10 +383,16 @@ def make_handler(shop):
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
             self.send_header("Connection", "close")
-            self.end_headers()
+            # Expiry never restarts the read budget. Allow only a short bounded
+            # grace to report 408; refresh the remaining write budget each time.
+            write_deadline = (time.monotonic() + TIMEOUT_RESPONSE_GRACE
+                              if status == 408 else self.request_deadline)
             try:
+                self.connection.settimeout(remaining_timeout(write_deadline))
+                self.end_headers()
+                self.connection.settimeout(remaining_timeout(write_deadline))
                 self.wfile.write(data)
-            except (BrokenPipeError, ConnectionResetError):
+            except OSError:
                 pass
 
         do_GET = do_POST = handle_request
