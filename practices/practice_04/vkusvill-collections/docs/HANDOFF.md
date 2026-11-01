@@ -1,6 +1,6 @@
 # Handoff — VkusVill Collections
 
-State on 2026-11-01, submission branch `codex/homework-5-search` (final PR review pending).
+State on 2026-11-01, submission branch `codex/homework-5-search` ([PR #6](https://github.com/daniilantonovv/ITMOv2/pull/6), final review pending).
 
 ## Done
 
