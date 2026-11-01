@@ -1,6 +1,6 @@
 # Handoff — VkusVill Collections
 
-State on 2026-10-06, branch `practice_04`.
+State on 2026-11-01, submission branch `codex/homework-5-search` ([PR #6](https://github.com/daniilantonovv/ITMOv2/pull/6), final review pending).
 
 ## Done
 
@@ -13,6 +13,7 @@ State on 2026-10-06, branch `practice_04`.
 | Own MCP server `collections` (save_collection, list_collections) | `mcp_server/`, `tests/test_mcp_server.py` | Claude Code, homework 4 |
 | Own skill `collection-approval` (preview + approval) | `.opencode/skills/collection-approval/` | Claude Code, homework 4 |
 | Agent setup | `AGENTS.md`, `docs/style-guide.md`, `.opencode/` (3 skills, hook, `tester`), `opencode.json` (Context7) | |
+| Homework 5: collection title search | `q` in list API/store, accessible search/clear, Unicode casefold, stale-response guard; `tests/test_collection_search.py` | Spec Kit artifacts in `../../practice_05/`; two independent UI/backend draft sessions |
 
 ## Sources of truth
 
@@ -22,7 +23,7 @@ State on 2026-10-06, branch `practice_04`.
 ## How to check
 
 ```sh
-sh scripts/check.sh            # expected: 63 passed
+sh scripts/check.sh            # verified: 80 passed (63 existing + 17 search cases)
 .venv/bin/uvicorn app.main:create_app --factory --port 8010
 ```
 
@@ -31,6 +32,17 @@ The `check-after-edit` hook runs the same check after every agent edit
 
 ## Known limits and open points
 
+- Homework 3 and 4 have already been reviewed, as confirmed by the user on
+  2026-11-01. Their GitHub PRs #4 and #3 are still open and unmerged as of
+  this check. HW5 targets `practice_04` to keep its diff separate, not because
+  HW4 is awaiting review.
+- Homework 5 is implemented and checked, including a real browser; final human
+  acceptance remains pending. The user explicitly authorized the submission PR
+  on 2026-11-01, overriding the default no-commit rule for this submission. See
+  `../../practice_05/README.md` from the project root. `make step5` in the repo
+  root runs the trusted runner; `make -C practices/practice_05 run` serves a
+  disposable synthetic demo. Title search filters before limit, uses Unicode
+  code points for the 120-character boundary, and leaves category counts global.
 - **Agent flow, half done:** the saving side exists (`collection-approval`
   skill + `collections` MCP, approval required). Fetching from the VkusVill MCP
   is not connected yet: we need its address and auth.
