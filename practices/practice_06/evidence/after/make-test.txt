@@ -11,7 +11,7 @@ Ran 3 tests in 0.000s
 OK
 ........................................................................ [ 90%]
 ........                                                                 [100%]
-80 passed in 3.21s
+80 passed in 3.17s
 Standard library only: ready
 test_health_and_not_found (test_http.HttpTest.test_health_and_not_found) ... ok
 test_login_and_purchase_over_http (test_http.HttpTest.test_login_and_purchase_over_http) ... ok
@@ -55,6 +55,6 @@ test_unknown_product_rejected (test_service.ShopTest.test_unknown_product_reject
 test_wrong_password_rejected (test_service.ShopTest.test_wrong_password_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 40 tests in 15.987s
+Ran 40 tests in 15.500s
 
 OK

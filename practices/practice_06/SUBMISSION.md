@@ -7,7 +7,7 @@
 | Атаки до исправлений (2) | [REPORT_01.md](REPORT_01.md), [evidence/before](evidence/before/) |
 | Исправления / checks (2) | [service.py](lab/service.py), [test_security.py](lab/test_security.py), make step6 и make test |
 | Повторные атаки (2) | [REPORT_02.md](REPORT_02.md), [evidence/after](evidence/after/) и [первая пара LLM](evidence/after-trial-01/) |
-| PR и выводы (1) | Готовый текст [PR_BODY.md](PR_BODY.md); публикация PR ещё не заявлена |
+| PR и выводы (1) | [PR #5](https://github.com/daniilantonovv/ITMOv2/pull/5); текст [PR_BODY.md](PR_BODY.md) |
 
 ```sh
 make step6
