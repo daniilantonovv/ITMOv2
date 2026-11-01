@@ -1,0 +1,269 @@
+FFFFFFFFFFF...FFF                                                        [100%]
+=================================== FAILURES ===================================
+_ test_search_matches_russian_title_ignoring_case_and_outer_spaces[\u0417\u0410\u0412\u0422\u0420\u0410\u041a] _
+
+client = <starlette.testclient.TestClient object at 0x1082a9160>
+new_collection = <function make_collection at 0x107ec7e20>, query = 'ЗАВТРАК'
+
+    @pytest.mark.parametrize("query", ["ЗАВТРАК", "завТрак", "  завтрак  "])
+    def test_search_matches_russian_title_ignoring_case_and_outer_spaces(client, new_collection, query):
+        expected = add(client, new_collection, "Завтрак на двоих")
+        add(client, new_collection, "Ужин")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [expected["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:18: AssertionError
+_ test_search_matches_russian_title_ignoring_case_and_outer_spaces[\u0437\u0430\u0432\u0422\u0440\u0430\u043a] _
+
+client = <starlette.testclient.TestClient object at 0x108320550>
+new_collection = <function make_collection at 0x107ec7e20>, query = 'завТрак'
+
+    @pytest.mark.parametrize("query", ["ЗАВТРАК", "завТрак", "  завтрак  "])
+    def test_search_matches_russian_title_ignoring_case_and_outer_spaces(client, new_collection, query):
+        expected = add(client, new_collection, "Завтрак на двоих")
+        add(client, new_collection, "Ужин")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [expected["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:18: AssertionError
+_ test_search_matches_russian_title_ignoring_case_and_outer_spaces[  \u0437\u0430\u0432\u0442\u0440\u0430\u043a  ] _
+
+client = <starlette.testclient.TestClient object at 0x108323390>
+new_collection = <function make_collection at 0x107ec7e20>
+query = '  завтрак  '
+
+    @pytest.mark.parametrize("query", ["ЗАВТРАК", "завТрак", "  завтрак  "])
+    def test_search_matches_russian_title_ignoring_case_and_outer_spaces(client, new_collection, query):
+        expected = add(client, new_collection, "Завтрак на двоих")
+        add(client, new_collection, "Ужин")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [expected["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:18: AssertionError
+_______ test_search_combines_with_exact_category_and_keeps_newest_first ________
+
+client = <starlette.testclient.TestClient object at 0x108325350>
+new_collection = <function make_collection at 0x107ec7e20>
+
+    def test_search_combines_with_exact_category_and_keeps_newest_first(client, new_collection):
+        old = add(client, new_collection, "Обед первый", "Обеды")
+        add(client, new_collection, "Обед другой", "Ужины")
+        newest = add(client, new_collection, "Обед второй", "Обеды")
+        add(client, new_collection, "Ужин", "Обеды")
+        result = client.get("/api/collections", params={"q": "ОБЕД", "category": "Обеды"}).json()
+>       assert [c["id"] for c in result] == [newest["id"], old["id"]]
+E       assert [4, 3, 1] == [3, 1]
+E
+E         At index 0 diff: 4 != 3
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:30: AssertionError
+____________ test_search_filters_before_limit_even_beyond_first_ten ____________
+
+client = <starlette.testclient.TestClient object at 0x108326fd0>
+new_collection = <function make_collection at 0x107ec7e20>
+
+    def test_search_filters_before_limit_even_beyond_first_ten(client, new_collection):
+        expected = add(client, new_collection, "Редкая подборка")
+        for i in range(12):
+            add(client, new_collection, f"Ужин {i}")
+        response = client.get("/api/collections", params={"q": "редкая", "limit": 1})
+>       assert [c["id"] for c in response.json()] == [expected["id"]]
+E       assert [13] == [1]
+E
+E         At index 0 diff: 13 != 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:38: AssertionError
+____________ test_search_does_not_match_product_names_or_categories ____________
+
+client = <starlette.testclient.TestClient object at 0x108292d50>
+new_collection = <function make_collection at 0x107ec7e20>
+
+    def test_search_does_not_match_product_names_or_categories(client, new_collection):
+        add(client, new_collection, "Утро", "Сырники", products=[{"name": "Сырники", "price": 100}])
+>       assert client.get("/api/collections", params={"q": "сырники"}).json() == []
+E       AssertionError: assert [{'id': 1, 't...ique24', ...}] == []
+E
+E         Left contains one more item: {'id': 1, 'title': 'Утро', 'category': 'Сырники', 'cart_url': 'https://vkusvill.ru/cart/share/unique24', ...}
+E         Use -v to get more diff
+
+tests/test_collection_search.py:43: AssertionError
+____________________ test_search_characters_are_literal[%] _____________________
+
+client = <starlette.testclient.TestClient object at 0x1084189e0>
+new_collection = <function make_collection at 0x107ec7e20>, query = '%'
+
+    @pytest.mark.parametrize("query", ["%", "_", "' OR 1=1 --", "\\", "<script>"])
+    def test_search_characters_are_literal(client, new_collection, query):
+        wanted = add(client, new_collection, f"Набор {query} сегодня")
+        add(client, new_collection, "Обычная подборка")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [wanted["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:52: AssertionError
+____________________ test_search_characters_are_literal[_] _____________________
+
+client = <starlette.testclient.TestClient object at 0x1084489e0>
+new_collection = <function make_collection at 0x107ec7e20>, query = '_'
+
+    @pytest.mark.parametrize("query", ["%", "_", "' OR 1=1 --", "\\", "<script>"])
+    def test_search_characters_are_literal(client, new_collection, query):
+        wanted = add(client, new_collection, f"Набор {query} сегодня")
+        add(client, new_collection, "Обычная подборка")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [wanted["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:52: AssertionError
+_______________ test_search_characters_are_literal[' OR 1=1 --] ________________
+
+client = <starlette.testclient.TestClient object at 0x108478160>
+new_collection = <function make_collection at 0x107ec7e20>
+query = "' OR 1=1 --"
+
+    @pytest.mark.parametrize("query", ["%", "_", "' OR 1=1 --", "\\", "<script>"])
+    def test_search_characters_are_literal(client, new_collection, query):
+        wanted = add(client, new_collection, f"Набор {query} сегодня")
+        add(client, new_collection, "Обычная подборка")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [wanted["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:52: AssertionError
+____________________ test_search_characters_are_literal[\\] ____________________
+
+client = <starlette.testclient.TestClient object at 0x10847aad0>
+new_collection = <function make_collection at 0x107ec7e20>, query = '\\'
+
+    @pytest.mark.parametrize("query", ["%", "_", "' OR 1=1 --", "\\", "<script>"])
+    def test_search_characters_are_literal(client, new_collection, query):
+        wanted = add(client, new_collection, f"Набор {query} сегодня")
+        add(client, new_collection, "Обычная подборка")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [wanted["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:52: AssertionError
+_________________ test_search_characters_are_literal[<script>] _________________
+
+client = <starlette.testclient.TestClient object at 0x1084d5480>
+new_collection = <function make_collection at 0x107ec7e20>, query = '<script>'
+
+    @pytest.mark.parametrize("query", ["%", "_", "' OR 1=1 --", "\\", "<script>"])
+    def test_search_characters_are_literal(client, new_collection, query):
+        wanted = add(client, new_collection, f"Набор {query} сегодня")
+        add(client, new_collection, "Обычная подборка")
+        response = client.get("/api/collections", params={"q": query})
+        assert response.status_code == 200
+>       assert [c["id"] for c in response.json()] == [wanted["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:52: AssertionError
+___________ test_search_query_boundary_is_validated_without_mutation ___________
+
+client = <starlette.testclient.TestClient object at 0x10854b790>
+new_collection = <function make_collection at 0x107ec7e20>
+
+    def test_search_query_boundary_is_validated_without_mutation(client, new_collection):
+        expected = add(client, new_collection, "я" * 120)
+        assert client.get("/api/collections", params={"q": "Я" * 120}).json()[0]["id"] == expected["id"]
+        before = client.get("/api/collections").json()
+        for query in ("я" * 121, " " * 121):
+            response = client.get("/api/collections", params={"q": query})
+>           assert response.status_code == 422
+E           assert 200 == 422
+E            +  where 200 = <Response [200 OK]>.status_code
+
+tests/test_collection_search.py:73: AssertionError
+____________________ test_search_uses_full_unicode_casefold ____________________
+
+client = <starlette.testclient.TestClient object at 0x10858a250>
+new_collection = <function make_collection at 0x107ec7e20>
+
+    def test_search_uses_full_unicode_casefold(client, new_collection):
+        expected = add(client, new_collection, "Straße")
+        add(client, new_collection, "Другой набор")
+>       assert [c["id"] for c in client.get("/api/collections", params={"q": "STRASSE"}).json()] == [expected["id"]]
+E       assert [2, 1] == [1]
+E
+E         At index 0 diff: 2 != 1
+E         Left contains one more item: 1
+E         Use -v to get more diff
+
+tests/test_collection_search.py:80: AssertionError
+_________________ test_search_empty_result_and_category_counts _________________
+
+client = <starlette.testclient.TestClient object at 0x1085c0c00>
+new_collection = <function make_collection at 0x107ec7e20>
+
+    def test_search_empty_result_and_category_counts(client, new_collection):
+        add(client, new_collection, "Завтрак", "Завтраки")
+        before = client.get("/api/categories").json()
+>       assert client.get("/api/collections", params={"q": "Несуществующая"}).json() == []
+E       AssertionError: assert [{'id': 1, 't...ique47', ...}] == []
+E
+E         Left contains one more item: {'id': 1, 'title': 'Завтрак', 'category': 'Завтраки', 'cart_url': 'https://vkusvill.ru/cart/share/unique47', ...}
+E         Use -v to get more diff
+
+tests/test_collection_search.py:86: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_collection_search.py::test_search_matches_russian_title_ignoring_case_and_outer_spaces[\u0417\u0410\u0412\u0422\u0420\u0410\u041a]
+FAILED tests/test_collection_search.py::test_search_matches_russian_title_ignoring_case_and_outer_spaces[\u0437\u0430\u0432\u0422\u0440\u0430\u043a]
+FAILED tests/test_collection_search.py::test_search_matches_russian_title_ignoring_case_and_outer_spaces[  \u0437\u0430\u0432\u0442\u0440\u0430\u043a  ]
+FAILED tests/test_collection_search.py::test_search_combines_with_exact_category_and_keeps_newest_first
+FAILED tests/test_collection_search.py::test_search_filters_before_limit_even_beyond_first_ten
+FAILED tests/test_collection_search.py::test_search_does_not_match_product_names_or_categories
+FAILED tests/test_collection_search.py::test_search_characters_are_literal[%]
+FAILED tests/test_collection_search.py::test_search_characters_are_literal[_]
+FAILED tests/test_collection_search.py::test_search_characters_are_literal[' OR 1=1 --]
+FAILED tests/test_collection_search.py::test_search_characters_are_literal[\\]
+FAILED tests/test_collection_search.py::test_search_characters_are_literal[<script>]
+FAILED tests/test_collection_search.py::test_search_query_boundary_is_validated_without_mutation
+FAILED tests/test_collection_search.py::test_search_uses_full_unicode_casefold
+FAILED tests/test_collection_search.py::test_search_empty_result_and_category_counts
+14 failed, 3 passed in 0.45s

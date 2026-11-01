@@ -23,6 +23,14 @@
   </header>
 
   <main>
+    <form class="search" id="search-form" role="search">
+      <label for="search-query">Название подборки</label>
+      <div class="search-controls">
+        <input id="search-query" type="search" placeholder="Например, завтрак" autocomplete="off">
+        <button class="button primary" type="submit">Найти</button>
+        <button class="button" id="search-clear" type="button">Очистить</button>
+      </div>
+    </form>
     <nav class="chips" id="categories" aria-label="Категории"></nav>
     <p class="status" id="status" role="status"></p>
     <ul class="grid" id="grid"></ul>

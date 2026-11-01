@@ -1,0 +1,16 @@
+{
+  "ui": {
+    "session_id": "ses_e67afb0ecffeoIMWyg4s4SixBk",
+    "model": "ollama/itmo-agent",
+    "agent": "ui-spec",
+    "tools": "deny",
+    "independent_session": true
+  },
+  "logic": {
+    "session_id": "ses_e67afae04ffer61ujxPpyx6b0e",
+    "model": "ollama/itmo-agent",
+    "agent": "logic-spec",
+    "tools": "deny",
+    "independent_session": true
+  }
+}
