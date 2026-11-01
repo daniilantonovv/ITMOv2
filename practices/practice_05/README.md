@@ -2,7 +2,7 @@
 
 Фича: поиск подборок по названию в существующем **VkusVill Collections**. Пользователь выбрал collection search в чате. Реализация остаётся в [проекте ДЗ 4](../practice_04/vkusvill-collections); здесь находятся SDD-артефакты и сдача.
 
-**Сдача:** [PR #6](https://github.com/daniilantonovv/ITMOv2/pull/6), `codex/homework-5-search` → `practice_04` (ДЗ 4 ещё на ревью).
+**Сдача:** [PR #6](https://github.com/daniilantonovv/ITMOv2/pull/6), `codex/homework-5-search` → `practice_04` (ДЗ 4 уже проверено; PR #3 пока не объединён с `main`).
 
 ## Что сдаётся
 

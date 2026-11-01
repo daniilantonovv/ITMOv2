@@ -32,6 +32,10 @@ The `check-after-edit` hook runs the same check after every agent edit
 
 ## Known limits and open points
 
+- Homework 3 and 4 have already been reviewed, as confirmed by the user on
+  2026-11-01. Their GitHub PRs #4 and #3 are still open and unmerged as of
+  this check. HW5 targets `practice_04` to keep its diff separate, not because
+  HW4 is awaiting review.
 - Homework 5 is implemented and checked, including a real browser; final human
   acceptance remains pending. The user explicitly authorized the submission PR
   on 2026-11-01, overriding the default no-commit rule for this submission. See
