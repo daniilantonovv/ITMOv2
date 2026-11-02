@@ -1,0 +1,7 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "ui-spec": {"description": "Independent UI specification draft", "mode": "primary", "prompt": "Ты команда UI. Напиши только краткую спецификацию UI по задаче. Не меняй файлы, не используй инструменты, не пиши код и рассуждения. Перечисли состояния, действия и предлагаемый контракт API.", "permission": {"*": "deny"}},
+    "logic-spec": {"description": "Independent backend specification draft", "mode": "primary", "prompt": "Ты команда backend. Напиши только краткую спецификацию логики по задаче. Не меняй файлы, не используй инструменты, не пиши код и рассуждения. Опиши данные, поиск, API, ограничения и ошибки.", "permission": {"*": "deny"}}
+  }
+}

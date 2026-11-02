@@ -88,17 +88,20 @@ class CollectionStore:
             ).fetchone()
         return _to_collection(row) if row else None
 
-    def list(self, limit: int, category: str | None = None) -> list[Collection]:
+    def list(self, limit: int, category: str | None = None, q: str = "") -> list[Collection]:
         query = "SELECT * FROM collections"
         params: list = []
         if category is not None:
             query += " WHERE category = ?"
             params.append(category)
-        query += " ORDER BY id DESC LIMIT ?"
-        params.append(limit)
+        query += " ORDER BY id DESC"
         with self._db() as db:
             rows = db.execute(query, params).fetchall()
-        return [_to_collection(row) for row in rows]
+        # Storage is capped at 100 rows. Python casefold supports Cyrillic and
+        # literal characters without SQLite LIKE's wildcard/ASCII limitations.
+        needle = q.strip().casefold()
+        matches = [row for row in rows if needle in row["title"].casefold()]
+        return [_to_collection(row) for row in matches[:limit]]
 
     def update(self, collection_id: int, data: CollectionIn) -> Collection | None:
         try:

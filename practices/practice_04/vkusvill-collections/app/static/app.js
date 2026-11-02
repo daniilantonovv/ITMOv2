@@ -9,6 +9,7 @@ const $ = (id) => document.getElementById(id);
 const els = {
   categories: $("categories"), status: $("status"), grid: $("grid"), template: $("card-template"),
   hero: $("hero-receipt"),
+  searchForm: $("search-form"), searchQuery: $("search-query"), searchClear: $("search-clear"),
   details: $("details"), title: $("details-title"), category: $("details-category"), meta: $("details-meta"),
   products: $("details-products"), total: $("details-total"), kcal: $("details-kcal"),
   macroBar: $("details-macro-bar"), macros: $("details-macros"), barcode: $("details-barcode"),
@@ -16,6 +17,8 @@ const els = {
 };
 
 let activeCategory = null;
+let activeQuery = "";
+let loadVersion = 0;
 let currentCartUrl = "";
 let heroPrinted = false;
 
@@ -223,26 +226,62 @@ function renderCards(collections) {
 }
 
 async function load() {
+  const version = ++loadVersion;
+  const category = activeCategory;
+  const search = activeQuery;
+  els.grid.replaceChildren();
+  els.grid.setAttribute("aria-busy", "true");
   showStatus("Загружаем подборки…");
   try {
     const query = new URLSearchParams({ limit: DASHBOARD_LIMIT });
-    if (activeCategory) query.set("category", activeCategory);
+    if (category !== null) query.set("category", category);
+    if (search) query.set("q", search);
     const [categories, collections] = await Promise.all([
       getJson("/api/categories"),
       getJson(`/api/collections?${query}`),
     ]);
+    if (version !== loadVersion) return;
     renderCategories(categories);
     renderCards(collections);
-    showStatus(collections.length ? "" : "Подборок пока нет. Их добавляет оператор через агента.");
+    showStatus(collections.length ? "" : search || category !== null
+      ? "Ничего не найдено. Измените запрос или категорию."
+      : "Подборок пока нет. Их добавляет оператор через агента.");
     if (!heroPrinted && collections.length) {
+      const latest = await getJson(`/api/collections/${collections[0].id}`);
+      if (version !== loadVersion) return;
       heroPrinted = true;
-      printHero(await getJson(`/api/collections/${collections[0].id}`));
+      printHero(latest);
     }
   } catch {
+    if (version !== loadVersion) return;
     els.grid.replaceChildren();
     showStatus("Не удалось загрузить подборки. Проверьте, что сервер запущен.", { error: true, retry: load });
+  } finally {
+    if (version === loadVersion) els.grid.setAttribute("aria-busy", "false");
   }
 }
+
+els.searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  // HTML maxlength counts UTF-16 units; the API counts Unicode code points.
+  if (Array.from(els.searchQuery.value).length > 120) {
+    els.searchQuery.setCustomValidity("Введите не больше 120 символов.");
+    els.searchQuery.reportValidity();
+    return;
+  }
+  activeQuery = els.searchQuery.value.trim();
+  load();
+});
+
+els.searchQuery.addEventListener("input", () => els.searchQuery.setCustomValidity(""));
+
+els.searchClear.addEventListener("click", () => {
+  els.searchQuery.value = "";
+  els.searchQuery.setCustomValidity("");
+  activeQuery = "";
+  els.searchQuery.focus();
+  load();
+});
 
 // ---------- details ----------
 

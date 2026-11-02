@@ -41,13 +41,28 @@ All endpoints are under `/api`. Errors are JSON `{"detail": ...}`.
 | Method & path | Success | Notes |
 |---|---|---|
 | `POST /api/collections` | 201 + collection | |
-| `GET /api/collections` | 200 + list of summaries | newest first; `?limit=` 1–100, default 10; `?category=` exact filter |
+| `GET /api/collections` | 200 + list of summaries | newest first; `?limit=` 1–100, default 10; `?category=` exact filter; `?q=` literal title search |
 | `GET /api/collections/{id}` | 200 + collection | 404 if missing |
 | `PUT /api/collections/{id}` | 200 + collection | full replace; keeps `id` and `created_at`; 404 if missing |
 | `DELETE /api/collections/{id}` | 204 | 404 if missing |
 | `GET /api/categories` | 200 + `[{category, count}]` | sorted by category name |
 
 A summary is a collection without `products`, plus `product_count`.
+
+### Collection title search (homework 5)
+
+`q` is optional, at most 120 Unicode code points before trimming (422 if longer).
+Trim leading/trailing whitespace and match a literal substring of the title
+using Unicode case folding, including Russian. Empty/whitespace q keeps the old
+list behavior. Product names and categories are not searched. Combine q with
+the exact category filter, then order newest first and apply limit. Summary
+shape and global category counts stay unchanged. No matches returns `[]`.
+
+The dashboard has a labeled search form with Enter/“Найти” and “Очистить”.
+Clearing q keeps the selected category. A filtered empty result says
+“Ничего не найдено. Измените запрос или категорию.” Loading/errors retain the
+controls; errors offer retry. Obsolete asynchronous responses cannot replace
+the newest results. Details and cart controls retain their existing behavior.
 
 Invalid input returns 422. A missing collection returns 404 `{"detail": "collection not found"}`.
 

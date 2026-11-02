@@ -1,0 +1,23 @@
+{
+  "before": {
+    "maxLength": 120,
+    "initial_emoji_code_points": 60,
+    "attempted_extra_typed_emoji": 1,
+    "observed_code_points": 60
+  },
+  "after": {
+    "initial_emoji_code_points": 119,
+    "extra_typed_emoji": 1,
+    "observed_code_points": 120,
+    "valid": true,
+    "matching_title_code_points": [
+      120
+    ]
+  },
+  "overlong": {
+    "code_points": 121,
+    "valid": false,
+    "message": "Введите не больше 120 символов."
+  },
+  "clear_then_cyrillic_search": "passed"
+}

@@ -30,8 +30,9 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     def list_collections(
         limit: Annotated[int, Query(ge=1, le=100)] = 10,
         category: str | None = None,
+        q: Annotated[str, Query(max_length=120)] = "",
     ) -> list[CollectionSummary]:
-        return [c.summary() for c in store.list(limit=limit, category=category)]
+        return [c.summary() for c in store.list(limit=limit, category=category, q=q)]
 
     @api.get("/collections/{collection_id}")
     def get_collection(collection_id: int) -> Collection:
