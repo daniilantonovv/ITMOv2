@@ -1,0 +1,12 @@
+{
+  "stage": "headers_then_body",
+  "configured_deadline": 1.0,
+  "byte_interval": 0.08,
+  "client_observed_seconds": 1.002,
+  "server_closed": true,
+  "response_status_line": "HTTP/1.0 408 Request Timeout",
+  "bytes_trickled": 11,
+  "initial_health": 503,
+  "health_after_deadline": 200,
+  "body_started_seconds": 0.77
+}

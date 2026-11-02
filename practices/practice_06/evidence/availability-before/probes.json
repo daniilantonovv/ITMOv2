@@ -1,0 +1,48 @@
+{
+  "service_sha256": "449eaad4d480d74c8b72b26d8796d5e6722926b6e76977e321f4c7ad8040c325",
+  "unicode_review": {
+    "post_status": 201,
+    "reviews": {
+      "error": "RemoteDisconnected"
+    },
+    "assistant": {
+      "error": "RemoteDisconnected"
+    },
+    "stored_reviews": 1
+  },
+  "trickle": [
+    {
+      "stage": "request_line",
+      "configured_deadline": 0.4,
+      "byte_interval": 0.08,
+      "client_observed_seconds": 1.703,
+      "server_closed": false,
+      "response_status_line": "",
+      "bytes_trickled": 14,
+      "initial_health": 503,
+      "health_after_deadline": 503
+    },
+    {
+      "stage": "headers",
+      "configured_deadline": 0.4,
+      "byte_interval": 0.08,
+      "client_observed_seconds": 1.703,
+      "server_closed": false,
+      "response_status_line": "",
+      "bytes_trickled": 14,
+      "initial_health": 503,
+      "health_after_deadline": 503
+    },
+    {
+      "stage": "body",
+      "configured_deadline": 0.4,
+      "byte_interval": 0.08,
+      "client_observed_seconds": 1.703,
+      "server_closed": false,
+      "response_status_line": "",
+      "bytes_trickled": 14,
+      "initial_health": 503,
+      "health_after_deadline": 503
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "model": "ollama/itmo-agent",
+  "agent": "threat-judge",
+  "tools": "deny",
+  "scope": "additional untrusted LLM review; manually checked, not authoritative score",
+  "input_sha256": "16cbfe85464364dd237d747ba317ec7878926e6bb178b03df8eed0a26c5835a4",
+  "system_prompt_sha256": "bb8628513be90e0fd2a16161aff391287547746c13bada6e4f27cab9628397ce",
+  "session_id": "ses_e679f8e9dffegVfmuN3DCKSpuP",
+  "valid_json": true
+}

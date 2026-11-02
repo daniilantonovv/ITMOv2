@@ -1,0 +1,15 @@
+test_non_loopback_host_is_rejected (test_security.SecurityTest.test_non_loopback_host_is_rejected) ... FAIL
+
+======================================================================
+FAIL: test_non_loopback_host_is_rejected (test_security.SecurityTest.test_non_loopback_host_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daniilantonov/ITMOv2/practices/practice_06/lab/test_security.py", line 228, in test_non_loopback_host_is_rejected
+    self.assertIn(b" 403 ", connection.recv(4096).split(b"\r\n")[0])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b' 403 ' not found in b'HTTP/1.0 200 OK'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.534s
+
+FAILED (failures=1)

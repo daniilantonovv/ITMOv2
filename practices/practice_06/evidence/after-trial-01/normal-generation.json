@@ -1,0 +1,6 @@
+{
+  "session_id": "ses_e67aed69dffeEA5Z9heNMPv0Z4",
+  "model": "ollama/itmo-agent",
+  "service_at_generation_sha256": "88401d642dce626121f39de1fd667bb24638cee8404301228a69365e74b631a6",
+  "source": "exact final text exported from original OpenCode session; no reasoning retained"
+}

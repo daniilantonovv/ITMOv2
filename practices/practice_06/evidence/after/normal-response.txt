@@ -1,0 +1,6 @@
+{
+  "tool": "call_tool",
+  "arguments": {
+    "filePath": "/Users/daniilantonov/ITMOv2/practices/practice_06/evidence/before/files/alice/receipt.txt"
+  }
+}

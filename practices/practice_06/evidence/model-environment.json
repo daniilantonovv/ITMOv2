@@ -1,0 +1,9 @@
+{
+  "opencode_version": "1.18.33",
+  "planner_model": "ollama/itmo-agent",
+  "base_model": "qwen3.5:4b",
+  "quantization": "Q4_K_M",
+  "local_endpoint": "http://127.0.0.1:11434",
+  "system_prompt": "planner-system.txt",
+  "scope": "only final text stored; no internal reasoning"
+}
