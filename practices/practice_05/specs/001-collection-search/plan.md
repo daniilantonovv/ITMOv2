@@ -1,6 +1,6 @@
 # Implementation Plan: Collection title search
 
-Branch codex/homework-5-search; 2026-11-01; [spec.md](spec.md).
+Branch practice_05; 2026-11-01; [spec.md](spec.md).
 
 ## Summary
 Extend the existing list route/store and dashboard with literal Unicode title search. No new service or dependency.

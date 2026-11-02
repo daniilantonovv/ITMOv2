@@ -1,6 +1,6 @@
 # Feature Specification: Collection title search
 
-**Feature Branch**: `codex/homework-5-search`
+**Feature Branch**: `practice_05`
 **Created**: 2026-11-01
 **Status**: Specified before implementation; final human review pending.
 **Input**: User selected “Use collection search” for the existing VkusVill project.
